@@ -1,11 +1,11 @@
 
 import { createClient } from '@supabase/supabase-js';
 
-// Estas variables deben ser configuradas en tu proyecto de Supabase
-const supabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_URL || 'YOUR_SUPABASE_URL';
-const supabaseAnonKey = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY || 'YOUR_SUPABASE_ANON_KEY';
+// Configuración de Supabase para el proyecto Pwnterrey-CTF
+const supabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_URL || 'https://hncaxxeetuwccxnohmcj.supabase.co';
+const supabaseAnonKey = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhuY2F4eGVldHV3Y2N4bm9obWNqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTg3MzIxMzQsImV4cCI6MjA3NDMwODEzNH0.Xx_MPMyFYmmbywr7FUottzwWebhPfQNUAGH3QyXDgd4';
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey);
 
 // Tipos para las tablas de Supabase
 export interface Database {
