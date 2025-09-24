@@ -10,6 +10,7 @@ import WorkshopScreen from '../screens/WorkshopScreen';
 import TalksScreen from '../screens/TalksScreen';
 import FavoritesScreen from '../screens/FavoritesScreen';
 import ProfileScreen from '../screens/ProfileScreen';
+import AuthWrapper from '../components/AuthWrapper';
 
 export default function MainScreen() {
   const [activeTab, setActiveTab] = useState('inicio');
@@ -39,11 +40,13 @@ export default function MainScreen() {
   };
 
   return (
-    <SafeAreaView style={commonStyles.container} edges={['top']}>
-      <View style={{ flex: 1 }}>
-        {renderActiveScreen()}
-      </View>
-      <BottomTabBar activeTab={activeTab} onTabChange={handleTabChange} />
-    </SafeAreaView>
+    <AuthWrapper>
+      <SafeAreaView style={commonStyles.container} edges={['top']}>
+        <View style={{ flex: 1 }}>
+          {renderActiveScreen()}
+        </View>
+        <BottomTabBar activeTab={activeTab} onTabChange={handleTabChange} />
+      </SafeAreaView>
+    </AuthWrapper>
   );
 }

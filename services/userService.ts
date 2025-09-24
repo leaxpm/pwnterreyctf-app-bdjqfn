@@ -47,9 +47,18 @@ export class UserService {
     try {
       console.log('Creating new user:', userData.email);
       
+      // Get the current authenticated user
+      const { data: { user }, error: authError } = await supabase.auth.getUser();
+      
+      if (authError || !user) {
+        console.error('No authenticated user found');
+        return null;
+      }
+
       const { data, error } = await supabase
         .from('users')
         .insert({
+          id: user.id, // Use the auth user ID
           name: userData.name,
           email: userData.email,
           avatar: userData.avatar,

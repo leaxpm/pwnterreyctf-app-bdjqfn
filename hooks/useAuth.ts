@@ -87,12 +87,15 @@ export const useAuth = () => {
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
+        options: {
+          emailRedirectTo: 'https://natively.dev/email-confirmed'
+        }
       });
 
       if (error) {
         console.error('Sign up error:', error);
         setError(error.message);
-        return false;
+        return { success: false, message: error.message };
       }
 
       if (data.user) {
@@ -106,15 +109,19 @@ export const useAuth = () => {
         if (newUser) {
           setUser(newUser);
           console.log('User signed up successfully');
-          return true;
+          return { 
+            success: true, 
+            message: 'Cuenta creada exitosamente. Por favor verifica tu email antes de iniciar sesión.',
+            needsVerification: !data.user.email_confirmed_at
+          };
         }
       }
 
-      return false;
+      return { success: false, message: 'Error creating user profile' };
     } catch (err) {
       console.error('Error in signUp:', err);
       setError('Error creating account');
-      return false;
+      return { success: false, message: 'Error creating account' };
     }
   };
 
@@ -131,20 +138,20 @@ export const useAuth = () => {
       if (error) {
         console.error('Sign in error:', error);
         setError(error.message);
-        return false;
+        return { success: false, message: error.message };
       }
 
       if (data.user) {
         await loadUserData(data.user.id);
         console.log('User signed in successfully');
-        return true;
+        return { success: true, message: 'Sesión iniciada exitosamente' };
       }
 
-      return false;
+      return { success: false, message: 'Error signing in' };
     } catch (err) {
       console.error('Error in signIn:', err);
       setError('Error signing in');
-      return false;
+      return { success: false, message: 'Error signing in' };
     }
   };
 

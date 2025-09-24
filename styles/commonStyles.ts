@@ -5,6 +5,7 @@ export const colors = {
   primary: '#6366F1',
   primaryDark: '#4F46E5',
   secondary: '#EC4899',
+  accent: '#6366F1',
   background: '#FFFFFF',
   surface: '#F8FAFC',
   text: '#1E293B',
@@ -75,6 +76,21 @@ export const commonStyles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 8,
     elevation: 4,
+  },
+  bottomTabBar: {
+    flexDirection: 'row',
+    backgroundColor: colors.background,
+    borderTopWidth: 1,
+    borderTopColor: colors.border,
+    paddingBottom: 20,
+    paddingTop: 12,
+    paddingHorizontal: 8,
+  },
+  bottomTab: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 8,
   },
 });
 

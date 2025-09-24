@@ -59,19 +59,31 @@ export default function ProfileScreen() {
 
   const handleAuth = async () => {
     if (authMode === 'signin') {
-      const success = await signIn(authEmail, authPassword);
-      if (success) {
+      const result = await signIn(authEmail, authPassword);
+      if (result.success) {
         setShowBottomSheet(false);
         setAuthEmail('');
         setAuthPassword('');
+        Alert.alert('Éxito', result.message);
+      } else {
+        Alert.alert('Error', result.message);
       }
     } else {
-      const success = await signUp(authEmail, authPassword, authName);
-      if (success) {
+      const result = await signUp(authEmail, authPassword, authName);
+      if (result.success) {
         setShowBottomSheet(false);
         setAuthEmail('');
         setAuthPassword('');
         setAuthName('');
+        Alert.alert('Éxito', result.message);
+        if (result.needsVerification) {
+          Alert.alert(
+            'Verificación requerida', 
+            'Hemos enviado un enlace de verificación a tu email. Por favor verifica tu cuenta antes de iniciar sesión.'
+          );
+        }
+      } else {
+        Alert.alert('Error', result.message);
       }
     }
   };

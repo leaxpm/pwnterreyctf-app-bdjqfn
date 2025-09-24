@@ -4,6 +4,7 @@ import { Event } from '../types/Event';
 import { EventService } from '../services/eventService';
 import { UserService } from '../services/userService';
 import { mockEvents } from '../data/mockEvents';
+import { supabase } from '../config/supabase';
 
 export const useEvents = () => {
   const [events, setEvents] = useState<Event[]>([]);
@@ -13,6 +14,20 @@ export const useEvents = () => {
 
   useEffect(() => {
     loadEvents();
+    
+    // Listen for auth changes to reload events with proper favorites
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        if (event === 'SIGNED_IN' || event === 'SIGNED_OUT') {
+          console.log('Auth state changed, reloading events');
+          await loadEvents();
+        }
+      }
+    );
+
+    return () => {
+      subscription.unsubscribe();
+    };
   }, []);
 
   const loadEvents = async () => {
