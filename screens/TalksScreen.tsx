@@ -1,68 +1,99 @@
 
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useEvents } from '../hooks/useEvents';
-import { colors, commonStyles } from '../styles/commonStyles';
+import { useAuth } from '../hooks/useAuth';
 import Icon from '../components/Icon';
-import { View, Text, ScrollView } from 'react-native';
+import { colors, commonStyles } from '../styles/commonStyles';
+import { View, Text, ScrollView, RefreshControl } from 'react-native';
 import EventCard from '../components/EventCard';
-import React from 'react';
+import React, { useState } from 'react';
 
-const TalksScreen: React.FC = () => {
-  const { getEventsByType, toggleFavorite } = useEvents();
+export default function TalksScreen() {
+  const { getEventsByType, toggleFavorite, loading, refreshEvents } = useEvents();
+  const { userStats, updateStats } = useAuth();
+  const [refreshing, setRefreshing] = useState(false);
+
   const talks = getEventsByType('Charla');
 
-  console.log('TalksScreen rendered with talks:', talks.length);
+  const handleRegister = async (eventId: string) => {
+    console.log('Registering for talk:', eventId);
+    
+    const talk = talks.find(e => e.id === eventId);
+    if (!talk) return;
 
-  const handleRegister = (eventId: string) => {
-    console.log('Register for talk:', eventId);
-    // Aquí podrías agregar lógica adicional para registro
+    // Update user stats
+    const newStats = {
+      ...userStats,
+      eventsAttended: userStats.eventsAttended + 1,
+      pointsEarned: userStats.pointsEarned + 20,
+    };
+    
+    await updateStats(newStats);
   };
 
-  const handleSubscribe = (eventId: string) => {
-    console.log('Subscribe to talk:', eventId);
-    toggleFavorite(eventId);
+  const handleSubscribe = async (eventId: string) => {
+    console.log('Subscribing to talk:', eventId);
+    await toggleFavorite(eventId);
   };
+
+  const onRefresh = async () => {
+    setRefreshing(true);
+    await refreshEvents();
+    setRefreshing(false);
+  };
+
+  if (loading && talks.length === 0) {
+    return (
+      <SafeAreaView style={commonStyles.container}>
+        <View style={[commonStyles.container, { justifyContent: 'center', alignItems: 'center' }]}>
+          <Text style={commonStyles.text}>Cargando charlas...</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
 
   return (
-    <SafeAreaView style={commonStyles.container} edges={['top']}>
+    <SafeAreaView style={commonStyles.container}>
       <View style={commonStyles.header}>
-        <View style={commonStyles.headerContent}>
-          <Icon name="chatbubbles" size={28} color={colors.accent} />
-          <Text style={commonStyles.headerTitle}>Charlas</Text>
-        </View>
-        <Text style={commonStyles.headerSubtitle}>
-          Suscríbete a las charlas que te interesen
-        </Text>
+        <Text style={commonStyles.title}>Charlas</Text>
+        <Icon name="mic" size={24} color={colors.text} />
       </View>
 
       <ScrollView 
-        style={commonStyles.content}
+        style={commonStyles.container}
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingBottom: 20 }}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            tintColor={colors.primary}
+          />
+        }
       >
-        {talks.length === 0 ? (
-          <View style={commonStyles.emptyState}>
-            <Icon name="chatbubbles-outline" size={64} color={colors.textSecondary} />
-            <Text style={commonStyles.emptyStateTitle}>No hay charlas disponibles</Text>
-            <Text style={commonStyles.emptyStateSubtitle}>
-              Las charlas aparecerán aquí cuando estén programadas
-            </Text>
-          </View>
-        ) : (
-          <View style={commonStyles.eventList}>
-            {talks.map((talk) => (
-              <EventCard
-                key={talk.id}
-                event={talk}
-                onToggleFavorite={handleSubscribe}
-                onRegister={handleRegister}
-              />
-            ))}
-          </View>
-        )}
+        <View style={{ padding: 20 }}>
+          {talks.map((talk) => (
+            <EventCard
+              key={talk.id}
+              event={talk}
+              onToggleFavorite={handleSubscribe}
+              onRegister={handleRegister}
+            />
+          ))}
+          
+          {talks.length === 0 && (
+            <View style={{
+              alignItems: 'center',
+              justifyContent: 'center',
+              paddingVertical: 60,
+            }}>
+              <Icon name="mic" size={48} color={colors.textSecondary} />
+              <Text style={[commonStyles.textSecondary, { marginTop: 16, textAlign: 'center' }]}>
+                No hay charlas disponibles
+              </Text>
+            </View>
+          )}
+        </View>
       </ScrollView>
     </SafeAreaView>
   );
-};
-
-export default TalksScreen;
+}

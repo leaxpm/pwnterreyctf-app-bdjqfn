@@ -1,94 +1,141 @@
 
-import React, { useState } from 'react';
-import { View, Text, ScrollView, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { colors, commonStyles } from '../styles/commonStyles';
-import { useEvents } from '../hooks/useEvents';
-import EventCard from '../components/EventCard';
+import React, { useState } from 'react';
 import FilterTabs from '../components/FilterTabs';
+import { useEvents } from '../hooks/useEvents';
+import { useAuth } from '../hooks/useAuth';
+import { colors, commonStyles } from '../styles/commonStyles';
 import Icon from '../components/Icon';
+import { View, Text, ScrollView, TouchableOpacity, RefreshControl } from 'react-native';
+import EventCard from '../components/EventCard';
 
-const HomeScreen: React.FC = () => {
-  const { getAllEvents, toggleFavorite } = useEvents();
-  const [activeFilter, setActiveFilter] = useState('todos');
+export default function HomeScreen() {
+  const { events, toggleFavorite, loading, error, refreshEvents } = useEvents();
+  const { userStats, updateStats } = useAuth();
+  const [activeFilter, setActiveFilter] = useState('Todos');
+  const [refreshing, setRefreshing] = useState(false);
 
-  const filters = [
-    { key: 'todos', label: 'Todos' },
-    { key: 'CTF', label: 'CTFs' },
-    { key: 'Taller', label: 'Talleres' },
-    { key: 'Charla', label: 'Charlas' },
-    { key: 'favoritos', label: 'Favoritos' },
-  ];
+  const filters = ['Todos', 'CTF', 'Taller', 'Charla'];
 
   const getFilteredEvents = () => {
-    const allEvents = getAllEvents();
-    
-    switch (activeFilter) {
-      case 'todos':
-        return allEvents;
-      case 'favoritos':
-        return allEvents.filter(event => event.isFavorite);
-      case 'CTF':
-      case 'Taller':
-      case 'Charla':
-        return allEvents.filter(event => event.type === activeFilter);
-      default:
-        return allEvents;
+    if (activeFilter === 'Todos') {
+      return events;
     }
+    return events.filter(event => event.type === activeFilter);
   };
 
-  const handleRegister = (eventId: string) => {
+  const handleRegister = async (eventId: string) => {
     console.log('Registering for event:', eventId);
-    // Here you would implement the registration logic
+    
+    const event = events.find(e => e.id === eventId);
+    if (!event) return;
+
+    // Update user stats based on event type
+    const newStats = { ...userStats };
+    
+    switch (event.type) {
+      case 'CTF':
+        newStats.ctfsCompleted += 1;
+        newStats.pointsEarned += 50;
+        break;
+      case 'Taller':
+        newStats.workshopsTaken += 1;
+        newStats.pointsEarned += 30;
+        break;
+      case 'Charla':
+        newStats.pointsEarned += 20;
+        break;
+    }
+    
+    newStats.eventsAttended += 1;
+    
+    await updateStats(newStats);
   };
+
+  const onRefresh = async () => {
+    setRefreshing(true);
+    await refreshEvents();
+    setRefreshing(false);
+  };
+
+  if (loading && events.length === 0) {
+    return (
+      <SafeAreaView style={commonStyles.container}>
+        <View style={[commonStyles.container, { justifyContent: 'center', alignItems: 'center' }]}>
+          <Text style={commonStyles.text}>Cargando eventos...</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={commonStyles.container}>
       <View style={commonStyles.header}>
-        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-          <Text style={commonStyles.title}>Pwnterrey</Text>
-          <Icon name="shield-checkmark" size={24} color={colors.text} style={{ marginLeft: 8 }} />
-        </View>
-        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-          <View style={commonStyles.localDataIndicator}>
-            <Icon name="warning" size={16} color={colors.text} />
-            <Text style={{ fontSize: 12, color: colors.text, marginLeft: 4 }}>
-              Datos locales
-            </Text>
-          </View>
-          <Text style={[commonStyles.textSecondary, { marginLeft: 12 }]}>
-            Modo sin conexión
-          </Text>
-        </View>
+        <Text style={commonStyles.title}>PwnterreyCTF</Text>
+        <TouchableOpacity onPress={onRefresh}>
+          <Icon name="refresh-cw" size={24} color={colors.text} />
+        </TouchableOpacity>
       </View>
 
-      <FilterTabs 
+      {error && (
+        <View style={{
+          backgroundColor: colors.error + '20',
+          margin: 20,
+          padding: 12,
+          borderRadius: 8,
+          borderLeftWidth: 4,
+          borderLeftColor: colors.error,
+        }}>
+          <Text style={{ color: colors.error }}>
+            {error}
+          </Text>
+        </View>
+      )}
+
+      <FilterTabs
+        filters={filters}
         activeFilter={activeFilter}
         onFilterChange={setActiveFilter}
-        filters={filters}
       />
 
-      <ScrollView style={commonStyles.content} showsVerticalScrollIndicator={false}>
-        {getFilteredEvents().map((event) => (
-          <EventCard
-            key={event.id}
-            event={event}
-            onToggleFavorite={toggleFavorite}
-            onRegister={handleRegister}
+      <ScrollView 
+        style={commonStyles.container}
+        showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            tintColor={colors.primary}
           />
-        ))}
-        
-        {getFilteredEvents().length === 0 && (
-          <View style={{ alignItems: 'center', marginTop: 40 }}>
-            <Icon name="calendar-outline" size={48} color={colors.textSecondary} />
-            <Text style={[commonStyles.textSecondary, { marginTop: 16, textAlign: 'center' }]}>
-              No hay eventos disponibles para este filtro
-            </Text>
-          </View>
-        )}
+        }
+      >
+        <View style={{ padding: 20, paddingTop: 0 }}>
+          {getFilteredEvents().map((event) => (
+            <EventCard
+              key={event.id}
+              event={event}
+              onToggleFavorite={toggleFavorite}
+              onRegister={handleRegister}
+            />
+          ))}
+          
+          {getFilteredEvents().length === 0 && (
+            <View style={{
+              alignItems: 'center',
+              justifyContent: 'center',
+              paddingVertical: 60,
+            }}>
+              <Icon name="calendar" size={48} color={colors.textSecondary} />
+              <Text style={[commonStyles.textSecondary, { marginTop: 16, textAlign: 'center' }]}>
+                {activeFilter === 'Todos' 
+                  ? 'No hay eventos disponibles'
+                  : `No hay eventos de tipo ${activeFilter}`
+                }
+              </Text>
+            </View>
+          )}
+        </View>
       </ScrollView>
     </SafeAreaView>
   );
-};
-
-export default HomeScreen;
+}

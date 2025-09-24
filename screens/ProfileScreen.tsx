@@ -1,295 +1,371 @@
 
-import React, { useState, useMemo } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, TextInput, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { colors, commonStyles, buttonStyles } from '../styles/commonStyles';
-import Icon from '../components/Icon';
 import SimpleBottomSheet from '../components/BottomSheet';
-import BadgeCard from '../components/BadgeCard';
+import Icon from '../components/Icon';
+import { View, Text, ScrollView, TouchableOpacity, TextInput, Alert } from 'react-native';
+import { colors, commonStyles, buttonStyles } from '../styles/commonStyles';
 import { useBadges } from '../hooks/useBadges';
+import { useAuth } from '../hooks/useAuth';
+import BadgeCard from '../components/BadgeCard';
 import { UserStats } from '../types/Badge';
+import React, { useState, useMemo } from 'react';
 
-const ProfileScreen: React.FC = () => {
-  const [user, setUser] = useState({
-    name: 'Usuario Anónimo',
-    email: '',
-    team: '',
-    experience: 'Principiante',
-  });
-  const [isEditingProfile, setIsEditingProfile] = useState(false);
-  const [tempUser, setTempUser] = useState(user);
+export default function ProfileScreen() {
+  const { user, userStats, updateProfile, updateStats, signIn, signUp, signOut, loading: authLoading } = useAuth();
+  const { badges, getUnlockedBadges, getLockedBadges, getBadgeProgress, loading: badgesLoading } = useBadges(userStats);
+  
+  const [isEditing, setIsEditing] = useState(false);
+  const [showBottomSheet, setShowBottomSheet] = useState(false);
+  const [editedName, setEditedName] = useState(user?.name || '');
+  const [editedEmail, setEditedEmail] = useState(user?.email || '');
+  
+  // Auth form states
+  const [authMode, setAuthMode] = useState<'signin' | 'signup'>('signin');
+  const [authEmail, setAuthEmail] = useState('');
+  const [authPassword, setAuthPassword] = useState('');
+  const [authName, setAuthName] = useState('');
 
-  // Mock user stats - in a real app, these would come from the database
-  const [userStats] = useState<UserStats>({
-    eventsAttended: 0,
-    ctfsCompleted: 0,
-    workshopsTaken: 0,
-    pointsEarned: 0,
-    profileComplete: false,
-  });
+  const unlockedBadges = useMemo(() => getUnlockedBadges(), [badges]);
+  const lockedBadges = useMemo(() => getLockedBadges(), [badges]);
 
-  // Update profile completion status based on user data
-  const updatedUserStats = useMemo<UserStats>(() => {
-    const isProfileComplete = !!(user.name && user.name !== 'Usuario Anónimo' && user.email && user.team);
-    return {
-      ...userStats,
-      profileComplete: isProfileComplete,
-    };
-  }, [user, userStats]);
-
-  const { badges, getUnlockedBadges, getLockedBadges, getBadgeProgress } = useBadges(updatedUserStats);
-
-  const handleSaveProfile = () => {
-    console.log('Saving profile:', tempUser);
-    setUser(tempUser);
-    setIsEditingProfile(false);
-    Alert.alert('Perfil actualizado', 'Tu perfil ha sido guardado exitosamente');
+  const handleSaveProfile = async () => {
+    if (!user) return;
+    
+    const success = await updateProfile({
+      name: editedName,
+      email: editedEmail,
+    });
+    
+    if (success) {
+      setIsEditing(false);
+      Alert.alert('Éxito', 'Perfil actualizado correctamente');
+      
+      // Update profile complete status
+      const newStats = {
+        ...userStats,
+        profileComplete: editedName.trim() !== '' && editedEmail.trim() !== '',
+      };
+      await updateStats(newStats);
+    } else {
+      Alert.alert('Error', 'No se pudo actualizar el perfil');
+    }
   };
 
   const handleCancelEdit = () => {
-    setTempUser(user);
-    setIsEditingProfile(false);
+    setEditedName(user?.name || '');
+    setEditedEmail(user?.email || '');
+    setIsEditing(false);
   };
 
-  const stats = [
-    { label: 'Eventos asistidos', value: updatedUserStats.eventsAttended.toString() },
-    { label: 'CTFs completados', value: updatedUserStats.ctfsCompleted.toString() },
-    { label: 'Talleres tomados', value: updatedUserStats.workshopsTaken.toString() },
-    { label: 'Puntos totales', value: updatedUserStats.pointsEarned.toString() },
-  ];
+  const handleAuth = async () => {
+    if (authMode === 'signin') {
+      const success = await signIn(authEmail, authPassword);
+      if (success) {
+        setShowBottomSheet(false);
+        setAuthEmail('');
+        setAuthPassword('');
+      }
+    } else {
+      const success = await signUp(authEmail, authPassword, authName);
+      if (success) {
+        setShowBottomSheet(false);
+        setAuthEmail('');
+        setAuthPassword('');
+        setAuthName('');
+      }
+    }
+  };
 
-  const unlockedBadges = getUnlockedBadges();
-  const lockedBadges = getLockedBadges();
+  const handleSignOut = async () => {
+    const success = await signOut();
+    if (success) {
+      Alert.alert('Éxito', 'Sesión cerrada correctamente');
+    }
+  };
+
+  if (authLoading) {
+    return (
+      <SafeAreaView style={commonStyles.container}>
+        <View style={[commonStyles.container, { justifyContent: 'center', alignItems: 'center' }]}>
+          <Text style={commonStyles.text}>Cargando...</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  if (!user) {
+    return (
+      <SafeAreaView style={commonStyles.container}>
+        <View style={commonStyles.header}>
+          <Text style={commonStyles.title}>Perfil</Text>
+        </View>
+        
+        <View style={[commonStyles.container, { justifyContent: 'center', alignItems: 'center', padding: 20 }]}>
+          <Icon name="user" size={80} color={colors.textSecondary} />
+          <Text style={[commonStyles.title, { marginTop: 20, marginBottom: 10 }]}>
+            Inicia Sesión
+          </Text>
+          <Text style={[commonStyles.textSecondary, { textAlign: 'center', marginBottom: 30 }]}>
+            Inicia sesión para guardar tus favoritos y desbloquear badges
+          </Text>
+          
+          <TouchableOpacity
+            style={buttonStyles.primary}
+            onPress={() => setShowBottomSheet(true)}
+          >
+            <Text style={buttonStyles.primaryText}>Iniciar Sesión</Text>
+          </TouchableOpacity>
+        </View>
+
+        <SimpleBottomSheet
+          isVisible={showBottomSheet}
+          onClose={() => setShowBottomSheet(false)}
+        >
+          <View style={{ padding: 20 }}>
+            <Text style={[commonStyles.title, { marginBottom: 20 }]}>
+              {authMode === 'signin' ? 'Iniciar Sesión' : 'Crear Cuenta'}
+            </Text>
+            
+            {authMode === 'signup' && (
+              <TextInput
+                style={[commonStyles.input, { marginBottom: 15 }]}
+                placeholder="Nombre"
+                value={authName}
+                onChangeText={setAuthName}
+                placeholderTextColor={colors.textSecondary}
+              />
+            )}
+            
+            <TextInput
+              style={[commonStyles.input, { marginBottom: 15 }]}
+              placeholder="Email"
+              value={authEmail}
+              onChangeText={setAuthEmail}
+              keyboardType="email-address"
+              autoCapitalize="none"
+              placeholderTextColor={colors.textSecondary}
+            />
+            
+            <TextInput
+              style={[commonStyles.input, { marginBottom: 20 }]}
+              placeholder="Contraseña"
+              value={authPassword}
+              onChangeText={setAuthPassword}
+              secureTextEntry
+              placeholderTextColor={colors.textSecondary}
+            />
+            
+            <TouchableOpacity
+              style={buttonStyles.primary}
+              onPress={handleAuth}
+            >
+              <Text style={buttonStyles.primaryText}>
+                {authMode === 'signin' ? 'Iniciar Sesión' : 'Crear Cuenta'}
+              </Text>
+            </TouchableOpacity>
+            
+            <TouchableOpacity
+              style={[buttonStyles.secondary, { marginTop: 10 }]}
+              onPress={() => setAuthMode(authMode === 'signin' ? 'signup' : 'signin')}
+            >
+              <Text style={buttonStyles.secondaryText}>
+                {authMode === 'signin' ? '¿No tienes cuenta? Regístrate' : '¿Ya tienes cuenta? Inicia sesión'}
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </SimpleBottomSheet>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={commonStyles.container}>
       <View style={commonStyles.header}>
-        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-          <Icon name="person" size={24} color={colors.accent} />
-          <Text style={[commonStyles.title, { marginLeft: 8 }]}>Perfil</Text>
-        </View>
-        <TouchableOpacity onPress={() => setIsEditingProfile(true)}>
-          <Icon name="create-outline" size={24} color={colors.accent} />
+        <Text style={commonStyles.title}>Perfil</Text>
+        <TouchableOpacity onPress={handleSignOut}>
+          <Icon name="log-out" size={24} color={colors.text} />
         </TouchableOpacity>
       </View>
 
-      <ScrollView style={commonStyles.content} showsVerticalScrollIndicator={false}>
-        <View style={[commonStyles.card, { alignItems: 'center', marginBottom: 16 }]}>
+      <ScrollView style={commonStyles.container} showsVerticalScrollIndicator={false}>
+        {/* Profile Info */}
+        <View style={{
+          backgroundColor: colors.surface,
+          margin: 20,
+          padding: 20,
+          borderRadius: 16,
+          alignItems: 'center',
+        }}>
           <View style={{
             width: 80,
             height: 80,
             borderRadius: 40,
-            backgroundColor: colors.accent,
-            alignItems: 'center',
+            backgroundColor: colors.primary,
             justifyContent: 'center',
+            alignItems: 'center',
             marginBottom: 16,
           }}>
-            <Icon name="person" size={40} color={colors.background} />
-          </View>
-          <Text style={[commonStyles.title, { fontSize: 20, marginBottom: 4 }]}>
-            {user.name}
-          </Text>
-          {user.email && (
-            <Text style={commonStyles.textSecondary}>{user.email}</Text>
-          )}
-          {user.team && (
-            <Text style={[commonStyles.textSecondary, { marginTop: 4 }]}>
-              Equipo: {user.team}
-            </Text>
-          )}
-          <View style={[commonStyles.tag, { backgroundColor: colors.accent, marginTop: 8 }]}>
-            <Text style={commonStyles.tagText}>{user.experience}</Text>
-          </View>
-        </View>
-
-        <View style={commonStyles.card}>
-          <Text style={[commonStyles.subtitle, { marginBottom: 16 }]}>Estadísticas</Text>
-          {stats.map((stat, index) => (
-            <View key={index} style={{
-              flexDirection: 'row',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              paddingVertical: 8,
-              borderBottomWidth: index < stats.length - 1 ? 1 : 0,
-              borderBottomColor: colors.border,
+            <Text style={{
+              fontSize: 32,
+              fontWeight: 'bold',
+              color: colors.background,
             }}>
-              <Text style={commonStyles.text}>{stat.label}</Text>
-              <Text style={[commonStyles.text, { fontWeight: '600' }]}>{stat.value}</Text>
-            </View>
-          ))}
-        </View>
-
-        {/* Badges Section */}
-        <View style={commonStyles.card}>
-          <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 16 }}>
-            <Icon name="medal" size={20} color={colors.accent} />
-            <Text style={[commonStyles.subtitle, { marginLeft: 8 }]}>
-              Insignias ({unlockedBadges.length}/{badges.length})
+              {user.name?.charAt(0).toUpperCase() || 'U'}
             </Text>
           </View>
-          
-          {unlockedBadges.length > 0 && (
-            <View style={{ marginBottom: 16 }}>
-              <Text style={[commonStyles.text, { fontWeight: '600', marginBottom: 8 }]}>
-                Desbloqueadas
-              </Text>
-              {unlockedBadges.map((badge) => (
-                <BadgeCard key={badge.id} badge={badge} />
-              ))}
+
+          {isEditing ? (
+            <View style={{ width: '100%' }}>
+              <TextInput
+                style={[commonStyles.input, { marginBottom: 12 }]}
+                value={editedName}
+                onChangeText={setEditedName}
+                placeholder="Nombre"
+                placeholderTextColor={colors.textSecondary}
+              />
+              <TextInput
+                style={[commonStyles.input, { marginBottom: 16 }]}
+                value={editedEmail}
+                onChangeText={setEditedEmail}
+                placeholder="Email"
+                keyboardType="email-address"
+                autoCapitalize="none"
+                placeholderTextColor={colors.textSecondary}
+              />
+              <View style={{ flexDirection: 'row', gap: 12 }}>
+                <TouchableOpacity
+                  style={[buttonStyles.primary, { flex: 1 }]}
+                  onPress={handleSaveProfile}
+                >
+                  <Text style={buttonStyles.primaryText}>Guardar</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[buttonStyles.secondary, { flex: 1 }]}
+                  onPress={handleCancelEdit}
+                >
+                  <Text style={buttonStyles.secondaryText}>Cancelar</Text>
+                </TouchableOpacity>
+              </View>
             </View>
-          )}
-          
-          {lockedBadges.length > 0 && (
-            <View>
-              <Text style={[commonStyles.text, { fontWeight: '600', marginBottom: 8 }]}>
-                Por desbloquear
+          ) : (
+            <View style={{ alignItems: 'center', width: '100%' }}>
+              <Text style={[commonStyles.title, { marginBottom: 4 }]}>
+                {user.name || 'Usuario'}
               </Text>
-              {lockedBadges.slice(0, 4).map((badge) => (
-                <BadgeCard 
-                  key={badge.id} 
-                  badge={badge} 
-                  progress={getBadgeProgress(badge)}
-                />
-              ))}
-              {lockedBadges.length > 4 && (
-                <Text style={[commonStyles.textSecondary, { textAlign: 'center', marginTop: 8 }]}>
-                  +{lockedBadges.length - 4} insignias más por desbloquear
+              <Text style={[commonStyles.textSecondary, { marginBottom: 16 }]}>
+                {user.email}
+              </Text>
+              <TouchableOpacity
+                style={buttonStyles.secondary}
+                onPress={() => {
+                  setEditedName(user.name || '');
+                  setEditedEmail(user.email || '');
+                  setIsEditing(true);
+                }}
+              >
+                <Icon name="edit-2" size={16} color={colors.text} />
+                <Text style={[buttonStyles.secondaryText, { marginLeft: 8 }]}>
+                  Editar Perfil
                 </Text>
-              )}
+              </TouchableOpacity>
             </View>
           )}
+        </View>
+
+        {/* Stats */}
+        <View style={{
+          backgroundColor: colors.surface,
+          margin: 20,
+          marginTop: 0,
+          padding: 20,
+          borderRadius: 16,
+        }}>
+          <Text style={[commonStyles.subtitle, { marginBottom: 16 }]}>
+            Estadísticas
+          </Text>
+          <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 12 }}>
+            <View style={{ flex: 1, minWidth: '45%' }}>
+              <Text style={commonStyles.textSecondary}>Eventos</Text>
+              <Text style={[commonStyles.title, { fontSize: 24 }]}>
+                {userStats.eventsAttended}
+              </Text>
+            </View>
+            <View style={{ flex: 1, minWidth: '45%' }}>
+              <Text style={commonStyles.textSecondary}>CTFs</Text>
+              <Text style={[commonStyles.title, { fontSize: 24 }]}>
+                {userStats.ctfsCompleted}
+              </Text>
+            </View>
+            <View style={{ flex: 1, minWidth: '45%' }}>
+              <Text style={commonStyles.textSecondary}>Talleres</Text>
+              <Text style={[commonStyles.title, { fontSize: 24 }]}>
+                {userStats.workshopsTaken}
+              </Text>
+            </View>
+            <View style={{ flex: 1, minWidth: '45%' }}>
+              <Text style={commonStyles.textSecondary}>Puntos</Text>
+              <Text style={[commonStyles.title, { fontSize: 24 }]}>
+                {userStats.pointsEarned}
+              </Text>
+            </View>
+          </View>
+        </View>
+
+        {/* Badges */}
+        <View style={{
+          backgroundColor: colors.surface,
+          margin: 20,
+          marginTop: 0,
+          padding: 20,
+          borderRadius: 16,
+        }}>
+          <Text style={[commonStyles.subtitle, { marginBottom: 16 }]}>
+            Badges Desbloqueados ({unlockedBadges.length})
+          </Text>
           
-          {badges.length === 0 && (
-            <Text style={[commonStyles.textSecondary, { textAlign: 'center', fontStyle: 'italic' }]}>
-              No hay insignias disponibles
+          {badgesLoading ? (
+            <Text style={commonStyles.textSecondary}>Cargando badges...</Text>
+          ) : unlockedBadges.length > 0 ? (
+            <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 12 }}>
+              {unlockedBadges.map((badge) => (
+                <View key={badge.id} style={{ width: '48%' }}>
+                  <BadgeCard badge={badge} />
+                </View>
+              ))}
+            </View>
+          ) : (
+            <Text style={commonStyles.textSecondary}>
+              Aún no has desbloqueado ningún badge
             </Text>
           )}
         </View>
 
-        <View style={commonStyles.card}>
-          <Text style={[commonStyles.subtitle, { marginBottom: 16 }]}>Configuración</Text>
-          
-          <TouchableOpacity style={{
-            flexDirection: 'row',
-            alignItems: 'center',
-            paddingVertical: 12,
-            borderBottomWidth: 1,
-            borderBottomColor: colors.border,
+        {/* Progress Badges */}
+        {lockedBadges.length > 0 && (
+          <View style={{
+            backgroundColor: colors.surface,
+            margin: 20,
+            marginTop: 0,
+            marginBottom: 40,
+            padding: 20,
+            borderRadius: 16,
           }}>
-            <Icon name="notifications-outline" size={20} color={colors.textSecondary} />
-            <Text style={[commonStyles.text, { marginLeft: 12, flex: 1 }]}>
-              Notificaciones
+            <Text style={[commonStyles.subtitle, { marginBottom: 16 }]}>
+              Próximos Badges
             </Text>
-            <Icon name="chevron-forward" size={20} color={colors.textSecondary} />
-          </TouchableOpacity>
-
-          <TouchableOpacity style={{
-            flexDirection: 'row',
-            alignItems: 'center',
-            paddingVertical: 12,
-            borderBottomWidth: 1,
-            borderBottomColor: colors.border,
-          }}>
-            <Icon name="shield-outline" size={20} color={colors.textSecondary} />
-            <Text style={[commonStyles.text, { marginLeft: 12, flex: 1 }]}>
-              Privacidad
-            </Text>
-            <Icon name="chevron-forward" size={20} color={colors.textSecondary} />
-          </TouchableOpacity>
-
-          <TouchableOpacity style={{
-            flexDirection: 'row',
-            alignItems: 'center',
-            paddingVertical: 12,
-          }}>
-            <Icon name="help-circle-outline" size={20} color={colors.textSecondary} />
-            <Text style={[commonStyles.text, { marginLeft: 12, flex: 1 }]}>
-              Ayuda y soporte
-            </Text>
-            <Icon name="chevron-forward" size={20} color={colors.textSecondary} />
-          </TouchableOpacity>
-        </View>
+            <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 12 }}>
+              {lockedBadges.slice(0, 4).map((badge) => (
+                <View key={badge.id} style={{ width: '48%' }}>
+                  <BadgeCard 
+                    badge={badge} 
+                    progress={getBadgeProgress(badge)}
+                  />
+                </View>
+              ))}
+            </View>
+          </View>
+        )}
       </ScrollView>
-
-      <SimpleBottomSheet
-        isVisible={isEditingProfile}
-        onClose={handleCancelEdit}
-      >
-        <View style={{ padding: 20 }}>
-          <Text style={[commonStyles.title, { marginBottom: 20 }]}>Editar Perfil</Text>
-          
-          <View style={{ marginBottom: 16 }}>
-            <Text style={[commonStyles.text, { marginBottom: 8 }]}>Nombre</Text>
-            <TextInput
-              style={{
-                borderWidth: 1,
-                borderColor: colors.border,
-                borderRadius: 8,
-                padding: 12,
-                fontSize: 16,
-                color: colors.text,
-              }}
-              value={tempUser.name}
-              onChangeText={(text) => setTempUser({ ...tempUser, name: text })}
-              placeholder="Tu nombre"
-            />
-          </View>
-
-          <View style={{ marginBottom: 16 }}>
-            <Text style={[commonStyles.text, { marginBottom: 8 }]}>Email</Text>
-            <TextInput
-              style={{
-                borderWidth: 1,
-                borderColor: colors.border,
-                borderRadius: 8,
-                padding: 12,
-                fontSize: 16,
-                color: colors.text,
-              }}
-              value={tempUser.email}
-              onChangeText={(text) => setTempUser({ ...tempUser, email: text })}
-              placeholder="tu@email.com"
-              keyboardType="email-address"
-            />
-          </View>
-
-          <View style={{ marginBottom: 16 }}>
-            <Text style={[commonStyles.text, { marginBottom: 8 }]}>Equipo</Text>
-            <TextInput
-              style={{
-                borderWidth: 1,
-                borderColor: colors.border,
-                borderRadius: 8,
-                padding: 12,
-                fontSize: 16,
-                color: colors.text,
-              }}
-              value={tempUser.team}
-              onChangeText={(text) => setTempUser({ ...tempUser, team: text })}
-              placeholder="Nombre de tu equipo"
-            />
-          </View>
-
-          <View style={{ flexDirection: 'row', gap: 12, marginTop: 20 }}>
-            <TouchableOpacity
-              style={[buttonStyles.secondary, { flex: 1 }]}
-              onPress={handleCancelEdit}
-            >
-              <Text style={[commonStyles.text, { textAlign: 'center' }]}>Cancelar</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[buttonStyles.primary, { flex: 1 }]}
-              onPress={handleSaveProfile}
-            >
-              <Text style={[commonStyles.text, { color: colors.background, textAlign: 'center' }]}>
-                Guardar
-              </Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </SimpleBottomSheet>
     </SafeAreaView>
   );
-};
-
-export default ProfileScreen;
+}

@@ -1,64 +1,109 @@
 
-import React from 'react';
-import { View, Text, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { colors, commonStyles } from '../styles/commonStyles';
 import { useEvents } from '../hooks/useEvents';
-import EventCard from '../components/EventCard';
+import { useAuth } from '../hooks/useAuth';
+import { colors, commonStyles } from '../styles/commonStyles';
 import Icon from '../components/Icon';
+import { View, Text, ScrollView, RefreshControl } from 'react-native';
+import EventCard from '../components/EventCard';
+import React, { useState } from 'react';
 
-const FavoritesScreen: React.FC = () => {
-  const { getFavoriteEvents, toggleFavorite } = useEvents();
+export default function FavoritesScreen() {
+  const { getFavoriteEvents, toggleFavorite, loading, refreshEvents } = useEvents();
+  const { userStats, updateStats } = useAuth();
+  const [refreshing, setRefreshing] = useState(false);
+
   const favoriteEvents = getFavoriteEvents();
 
-  console.log('FavoritesScreen rendered with favorites:', favoriteEvents.length);
+  const handleRegister = async (eventId: string) => {
+    console.log('Registering for event:', eventId);
+    
+    const event = favoriteEvents.find(e => e.id === eventId);
+    if (!event) return;
 
-  const handleRegister = (eventId: string) => {
-    console.log('Registering for favorite event:', eventId);
-    // Here you would implement the registration logic
+    // Update user stats based on event type
+    const newStats = { ...userStats };
+    
+    switch (event.type) {
+      case 'CTF':
+        newStats.ctfsCompleted += 1;
+        newStats.pointsEarned += 50;
+        break;
+      case 'Taller':
+        newStats.workshopsTaken += 1;
+        newStats.pointsEarned += 30;
+        break;
+      case 'Charla':
+        newStats.pointsEarned += 20;
+        break;
+    }
+    
+    newStats.eventsAttended += 1;
+    
+    await updateStats(newStats);
   };
 
-  return (
-    <SafeAreaView style={commonStyles.container} edges={['top']}>
-      <View style={commonStyles.header}>
-        <View style={commonStyles.headerContent}>
-          <Icon name="star" size={28} color="#FFD700" />
-          <Text style={commonStyles.headerTitle}>Favoritos</Text>
+  const onRefresh = async () => {
+    setRefreshing(true);
+    await refreshEvents();
+    setRefreshing(false);
+  };
+
+  if (loading && favoriteEvents.length === 0) {
+    return (
+      <SafeAreaView style={commonStyles.container}>
+        <View style={[commonStyles.container, { justifyContent: 'center', alignItems: 'center' }]}>
+          <Text style={commonStyles.text}>Cargando favoritos...</Text>
         </View>
-        <Text style={commonStyles.headerSubtitle}>
-          {favoriteEvents.length} eventos guardados
-        </Text>
+      </SafeAreaView>
+    );
+  }
+
+  return (
+    <SafeAreaView style={commonStyles.container}>
+      <View style={commonStyles.header}>
+        <Text style={commonStyles.title}>Favoritos</Text>
+        <Icon name="heart" size={24} color={colors.primary} />
       </View>
 
       <ScrollView 
-        style={commonStyles.content} 
+        style={commonStyles.container}
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingBottom: 20 }}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            tintColor={colors.primary}
+          />
+        }
       >
-        {favoriteEvents.length === 0 ? (
-          <View style={commonStyles.emptyState}>
-            <Icon name="star-outline" size={64} color={colors.textSecondary} />
-            <Text style={commonStyles.emptyStateTitle}>No tienes eventos favoritos</Text>
-            <Text style={commonStyles.emptyStateSubtitle}>
-              Marca eventos como favoritos para verlos aquí.{'\n'}
-              Para charlas, usa el botón "Suscribirse" para agregarlas a favoritos.
-            </Text>
-          </View>
-        ) : (
-          <View style={commonStyles.eventList}>
-            {favoriteEvents.map((event) => (
-              <EventCard
-                key={event.id}
-                event={event}
-                onToggleFavorite={toggleFavorite}
-                onRegister={handleRegister}
-              />
-            ))}
-          </View>
-        )}
+        <View style={{ padding: 20 }}>
+          {favoriteEvents.map((event) => (
+            <EventCard
+              key={event.id}
+              event={event}
+              onToggleFavorite={toggleFavorite}
+              onRegister={handleRegister}
+            />
+          ))}
+          
+          {favoriteEvents.length === 0 && (
+            <View style={{
+              alignItems: 'center',
+              justifyContent: 'center',
+              paddingVertical: 60,
+            }}>
+              <Icon name="heart" size={48} color={colors.textSecondary} />
+              <Text style={[commonStyles.textSecondary, { marginTop: 16, textAlign: 'center' }]}>
+                No tienes eventos favoritos
+              </Text>
+              <Text style={[commonStyles.textSecondary, { marginTop: 8, textAlign: 'center' }]}>
+                Marca eventos como favoritos para verlos aquí
+              </Text>
+            </View>
+          )}
+        </View>
       </ScrollView>
     </SafeAreaView>
   );
-};
-
-export default FavoritesScreen;
+}

@@ -1,30 +1,111 @@
 
 import { useState, useEffect } from 'react';
 import { Event } from '../types/Event';
+import { EventService } from '../services/eventService';
+import { UserService } from '../services/userService';
 import { mockEvents } from '../data/mockEvents';
 
 export const useEvents = () => {
-  const [events, setEvents] = useState<Event[]>(mockEvents);
+  const [events, setEvents] = useState<Event[]>([]);
   const [favoriteEvents, setFavoriteEvents] = useState<string[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const toggleFavorite = (eventId: string) => {
-    console.log('Toggling favorite for event:', eventId);
-    
-    setEvents(prevEvents => 
-      prevEvents.map(event => 
-        event.id === eventId 
-          ? { ...event, isFavorite: !event.isFavorite }
-          : event
-      )
-    );
+  useEffect(() => {
+    loadEvents();
+  }, []);
 
-    setFavoriteEvents(prev => {
-      if (prev.includes(eventId)) {
-        return prev.filter(id => id !== eventId);
+  const loadEvents = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      console.log('Loading events...');
+      
+      // Try to load from Supabase first
+      const supabaseEvents = await EventService.getAllEvents();
+      
+      if (supabaseEvents.length > 0) {
+        console.log('Using Supabase events');
+        setEvents(supabaseEvents);
+        
+        // Load user favorites
+        const currentUser = await UserService.getCurrentUser();
+        if (currentUser) {
+          const favorites = await UserService.getUserFavorites(currentUser.id);
+          setFavoriteEvents(favorites);
+          
+          // Update events with favorite status
+          setEvents(prevEvents => 
+            prevEvents.map(event => ({
+              ...event,
+              isFavorite: favorites.includes(event.id)
+            }))
+          );
+        }
       } else {
-        return [...prev, eventId];
+        console.log('Using mock events as fallback');
+        setEvents(mockEvents);
       }
-    });
+    } catch (err) {
+      console.error('Error loading events:', err);
+      setError('Error loading events');
+      // Fallback to mock data
+      setEvents(mockEvents);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const toggleFavorite = async (eventId: string) => {
+    try {
+      console.log('Toggling favorite for event:', eventId);
+      
+      const currentUser = await UserService.getCurrentUser();
+      if (!currentUser) {
+        console.log('No user logged in, using local state');
+        // Fallback to local state management
+        setEvents(prevEvents => 
+          prevEvents.map(event => 
+            event.id === eventId 
+              ? { ...event, isFavorite: !event.isFavorite }
+              : event
+          )
+        );
+
+        setFavoriteEvents(prev => {
+          if (prev.includes(eventId)) {
+            return prev.filter(id => id !== eventId);
+          } else {
+            return [...prev, eventId];
+          }
+        });
+        return;
+      }
+
+      const success = await UserService.toggleFavorite(currentUser.id, eventId);
+      
+      if (success) {
+        // Update local state
+        setEvents(prevEvents => 
+          prevEvents.map(event => 
+            event.id === eventId 
+              ? { ...event, isFavorite: !event.isFavorite }
+              : event
+          )
+        );
+
+        setFavoriteEvents(prev => {
+          if (prev.includes(eventId)) {
+            return prev.filter(id => id !== eventId);
+          } else {
+            return [...prev, eventId];
+          }
+        });
+      }
+    } catch (err) {
+      console.error('Error toggling favorite:', err);
+      setError('Error updating favorite');
+    }
   };
 
   const getEventsByType = (type: Event['type']) => {
@@ -39,12 +120,19 @@ export const useEvents = () => {
     return events;
   };
 
+  const refreshEvents = () => {
+    loadEvents();
+  };
+
   return {
     events,
     favoriteEvents,
+    loading,
+    error,
     toggleFavorite,
     getEventsByType,
     getFavoriteEvents,
     getAllEvents,
+    refreshEvents,
   };
 };

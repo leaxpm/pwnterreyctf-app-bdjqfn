@@ -2,218 +2,136 @@
 import { StyleSheet, ViewStyle, TextStyle } from 'react-native';
 
 export const colors = {
-  primary: '#1a1a1a',      // Dark text color
-  secondary: '#666666',    // Gray text
-  accent: '#007AFF',       // Blue accent for buttons
-  background: '#FFFFFF',   // White background
-  backgroundAlt: '#F8F9FA', // Light gray background
-  text: '#1a1a1a',        // Dark text
-  textSecondary: '#666666', // Gray text
-  border: '#E5E5E7',      // Light border
-  card: '#FFFFFF',        // White card background
-  ctfTag: '#FF6B6B',      // Red for CTF tags
-  tallerTag: '#4ECDC4',   // Teal for Taller tags
-  charlaTag: '#45B7D1',   // Blue for Charla tags
-  yellow: '#FFD93D',      // Yellow for local data indicator
+  primary: '#6366F1',
+  primaryDark: '#4F46E5',
+  secondary: '#EC4899',
+  background: '#FFFFFF',
+  surface: '#F8FAFC',
+  text: '#1E293B',
+  textSecondary: '#64748B',
+  border: '#E2E8F0',
+  success: '#10B981',
+  warning: '#F59E0B',
+  error: '#EF4444',
+  info: '#3B82F6',
 };
-
-export const buttonStyles = StyleSheet.create({
-  primary: {
-    backgroundColor: colors.accent,
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 8,
-  },
-  secondary: {
-    backgroundColor: colors.backgroundAlt,
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: colors.border,
-  },
-  tab: {
-    paddingHorizontal: 20,
-    paddingVertical: 10,
-    borderRadius: 25,
-    marginHorizontal: 6,
-    minWidth: 80,
-    alignItems: 'center',
-  },
-  tabActive: {
-    backgroundColor: colors.primary,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  tabInactive: {
-    backgroundColor: colors.backgroundAlt,
-    borderWidth: 1,
-    borderColor: colors.border,
-  },
-});
 
 export const commonStyles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.background,
   },
-  content: {
-    flex: 1,
-    paddingHorizontal: 16,
-  },
   header: {
-    paddingHorizontal: 16,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 20,
     paddingVertical: 16,
-    backgroundColor: colors.background,
     borderBottomWidth: 1,
     borderBottomColor: colors.border,
   },
-  headerContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 8,
-  },
-  headerTitle: {
-    fontSize: 28,
-    fontWeight: '700',
-    color: colors.text,
-    marginLeft: 12,
-  },
-  headerSubtitle: {
-    fontSize: 16,
-    color: colors.textSecondary,
-    marginLeft: 40,
-  },
   title: {
     fontSize: 24,
-    fontWeight: '700',
+    fontWeight: 'bold',
     color: colors.text,
   },
   subtitle: {
-    fontSize: 16,
-    fontWeight: '500',
-    color: colors.textSecondary,
+    fontSize: 18,
+    fontWeight: '600',
+    color: colors.text,
   },
   text: {
-    fontSize: 14,
+    fontSize: 16,
     color: colors.text,
-    lineHeight: 20,
   },
   textSecondary: {
     fontSize: 14,
     color: colors.textSecondary,
-    lineHeight: 20,
+  },
+  input: {
+    backgroundColor: colors.surface,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    fontSize: 16,
+    color: colors.text,
   },
   card: {
-    backgroundColor: colors.card,
-    borderRadius: 12,
+    backgroundColor: colors.surface,
+    borderRadius: 16,
     padding: 16,
-    marginVertical: 6,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 1,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
-    elevation: 2,
-  },
-  tabContainer: {
-    paddingVertical: 16,
-    paddingHorizontal: 8,
-    backgroundColor: colors.background,
-  },
-  bottomTab: {
-    flex: 1,
-    alignItems: 'center',
-    paddingVertical: 12,
-    paddingHorizontal: 4,
-  },
-  bottomTabBar: {
-    flexDirection: 'row',
-    backgroundColor: colors.background,
-    paddingBottom: 0,
-    paddingTop: 12,
-    paddingHorizontal: 8,
-    borderTopWidth: 0,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: -2,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 10,
-  },
-  tag: {
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 4,
-    alignSelf: 'flex-start',
-    marginBottom: 8,
-  },
-  ctfTag: {
-    backgroundColor: colors.ctfTag,
-  },
-  tallerTag: {
-    backgroundColor: colors.tallerTag,
-  },
-  charlaTag: {
-    backgroundColor: colors.charlaTag,
-  },
-  tagText: {
-    color: colors.background,
-    fontSize: 12,
-    fontWeight: '600',
-  },
-  favoriteButton: {
-    padding: 8,
-  },
-  registerButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: colors.backgroundAlt,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 8,
+    marginBottom: 12,
     borderWidth: 1,
     borderColor: colors.border,
   },
-  localDataIndicator: {
-    backgroundColor: colors.yellow,
-    paddingHorizontal: 8,
-    paddingVertical: 4,
+  shadow: {
+    shadowColor: colors.text,
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+});
+
+export const buttonStyles = StyleSheet.create({
+  primary: {
+    backgroundColor: colors.primary,
+    paddingHorizontal: 20,
+    paddingVertical: 12,
     borderRadius: 12,
     flexDirection: 'row',
     alignItems: 'center',
-  },
-  emptyState: {
-    flex: 1,
     justifyContent: 'center',
-    alignItems: 'center',
-    paddingVertical: 60,
   },
-  emptyStateTitle: {
-    fontSize: 18,
+  primaryText: {
+    color: colors.background,
+    fontSize: 16,
     fontWeight: '600',
+  },
+  secondary: {
+    backgroundColor: colors.surface,
+    borderWidth: 1,
+    borderColor: colors.border,
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    borderRadius: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  secondaryText: {
     color: colors.text,
-    marginTop: 16,
-    marginBottom: 8,
+    fontSize: 16,
+    fontWeight: '500',
   },
-  emptyStateSubtitle: {
+  outline: {
+    backgroundColor: 'transparent',
+    borderWidth: 2,
+    borderColor: colors.primary,
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    borderRadius: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  outlineText: {
+    color: colors.primary,
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  small: {
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 8,
+  },
+  smallText: {
     fontSize: 14,
-    color: colors.textSecondary,
-    textAlign: 'center',
-    paddingHorizontal: 32,
-    lineHeight: 20,
-  },
-  eventList: {
-    paddingTop: 8,
+    fontWeight: '500',
   },
 });
