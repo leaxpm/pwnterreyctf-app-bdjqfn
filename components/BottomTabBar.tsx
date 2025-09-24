@@ -31,14 +31,16 @@ const BottomTabBar: React.FC<BottomTabBarProps> = ({ activeTab, onTabChange }) =
         >
           <Icon 
             name={tab.icon as any} 
-            size={24} 
+            size={26} 
             color={activeTab === tab.key ? colors.accent : colors.textSecondary} 
           />
           <Text
             style={{
-              fontSize: 12,
+              fontSize: 11,
               color: activeTab === tab.key ? colors.accent : colors.textSecondary,
-              marginTop: 2,
+              marginTop: 4,
+              fontWeight: activeTab === tab.key ? '600' : '400',
+              textAlign: 'center',
             }}
           >
             {tab.label}

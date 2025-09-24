@@ -11,38 +11,43 @@ interface FilterTabsProps {
 
 const FilterTabs: React.FC<FilterTabsProps> = ({ activeFilter, onFilterChange, filters }) => {
   return (
-    <ScrollView 
-      horizontal 
-      showsHorizontalScrollIndicator={false}
-      style={commonStyles.tabContainer}
-      contentContainerStyle={{ paddingHorizontal: 12 }}
-    >
-      {filters.map((filter) => (
-        <TouchableOpacity
-          key={filter.key}
-          style={[
-            buttonStyles.tab,
-            activeFilter === filter.key 
-              ? buttonStyles.tabActive 
-              : buttonStyles.tabInactive
-          ]}
-          onPress={() => {
-            console.log('Filter changed to:', filter.key);
-            onFilterChange(filter.key);
-          }}
-        >
-          <Text
-            style={{
-              color: activeFilter === filter.key ? colors.background : colors.text,
-              fontSize: 14,
-              fontWeight: '500',
+    <View style={commonStyles.tabContainer}>
+      <ScrollView 
+        horizontal 
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={{ 
+          paddingHorizontal: 16,
+          alignItems: 'center',
+        }}
+      >
+        {filters.map((filter) => (
+          <TouchableOpacity
+            key={filter.key}
+            style={[
+              buttonStyles.tab,
+              activeFilter === filter.key 
+                ? buttonStyles.tabActive 
+                : buttonStyles.tabInactive
+            ]}
+            onPress={() => {
+              console.log('Filter changed to:', filter.key);
+              onFilterChange(filter.key);
             }}
           >
-            {filter.label}
-          </Text>
-        </TouchableOpacity>
-      ))}
-    </ScrollView>
+            <Text
+              style={{
+                color: activeFilter === filter.key ? colors.background : colors.text,
+                fontSize: 14,
+                fontWeight: activeFilter === filter.key ? '600' : '500',
+                textAlign: 'center',
+              }}
+            >
+              {filter.label}
+            </Text>
+          </TouchableOpacity>
+        ))}
+      </ScrollView>
+    </View>
   );
 };
 
