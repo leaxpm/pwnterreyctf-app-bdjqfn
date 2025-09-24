@@ -66,25 +66,10 @@ export default function LoginScreen() {
       } else {
         const result = await signUp(email.trim(), password, name.trim());
         if (result.success) {
-          Alert.alert('Cuenta creada', result.message);
-          if (result.needsVerification) {
-            Alert.alert(
-              'Verificación requerida', 
-              'Hemos enviado un enlace de verificación a tu email. Por favor verifica tu cuenta antes de iniciar sesión.',
-              [
-                {
-                  text: 'Entendido',
-                  onPress: () => {
-                    setAuthMode('signin');
-                    setPassword('');
-                  }
-                }
-              ]
-            );
-          } else {
-            router.replace('/');
-          }
+          console.log('Account created successfully, redirecting to verification screen');
           resetForm();
+          // Redirect to email verification screen instead of showing alert
+          router.replace('/email-verification');
         } else {
           Alert.alert('Error de registro', result.message);
         }
