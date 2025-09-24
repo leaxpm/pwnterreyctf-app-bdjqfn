@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, TextInput, Alert, ScrollView } from 'react-native';
+import { View, Text, TouchableOpacity, TextInput, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuth } from '../hooks/useAuth';
 import { colors, commonStyles, buttonStyles } from '../styles/commonStyles';
@@ -30,67 +30,60 @@ export default function AuthWrapper({ children }: AuthWrapperProps) {
     return (
       <>
         <SafeAreaView style={commonStyles.container}>
-          <ScrollView style={commonStyles.container} contentContainerStyle={{ flexGrow: 1 }}>
-            {/* Header */}
-            <View style={[commonStyles.header, { borderBottomWidth: 0 }]}>
-              <Text style={commonStyles.title}>PwnterreyCTF</Text>
-            </View>
-
+          <View style={[commonStyles.container, { justifyContent: 'center', alignItems: 'center', padding: 20 }]}>
             {/* Hero Section */}
-            <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20 }}>
-              <View style={{
-                width: 120,
-                height: 120,
-                borderRadius: 60,
-                backgroundColor: colors.primary + '20',
-                justifyContent: 'center',
-                alignItems: 'center',
-                marginBottom: 32,
-              }}>
-                <Icon name="shield-checkmark" size={60} color={colors.primary} />
-              </View>
-
-              <Text style={[commonStyles.title, { fontSize: 28, textAlign: 'center', marginBottom: 12 }]}>
-                Bienvenido a PwnterreyCTF
-              </Text>
-              
-              <Text style={[commonStyles.textSecondary, { textAlign: 'center', marginBottom: 40, lineHeight: 22 }]}>
-                Únete a la comunidad de ciberseguridad más activa de México. 
-                Participa en CTFs, talleres y charlas especializadas.
-              </Text>
-
-              {/* Features */}
-              <View style={{ width: '100%', marginBottom: 40 }}>
-                <FeatureItem 
-                  emoji="🚩" 
-                  title="Eventos CTF" 
-                  description="Participa en competencias de ciberseguridad" 
-                />
-                <FeatureItem 
-                  emoji="🛠️" 
-                  title="Talleres Especializados" 
-                  description="Aprende de expertos en seguridad informática" 
-                />
-                <FeatureItem 
-                  emoji="💬" 
-                  title="Charlas y Networking" 
-                  description="Conecta con profesionales del sector" 
-                />
-                <FeatureItem 
-                  emoji="🏆" 
-                  title="Sistema de Badges" 
-                  description="Desbloquea logros por tu participación" 
-                />
-              </View>
-
-              <TouchableOpacity
-                style={[buttonStyles.primary, { width: '100%', paddingVertical: 16 }]}
-                onPress={() => setShowAuthSheet(true)}
-              >
-                <Text style={[buttonStyles.primaryText, { fontSize: 18 }]}>Comenzar</Text>
-              </TouchableOpacity>
+            <View style={{
+              width: 120,
+              height: 120,
+              borderRadius: 60,
+              backgroundColor: colors.primary + '20',
+              justifyContent: 'center',
+              alignItems: 'center',
+              marginBottom: 32,
+            }}>
+              <Icon name="shield-checkmark" size={60} color={colors.primary} />
             </View>
-          </ScrollView>
+
+            <Text style={[commonStyles.title, { fontSize: 28, textAlign: 'center', marginBottom: 12 }]}>
+              Bienvenido a PwnterreyCTF
+            </Text>
+            
+            <Text style={[commonStyles.textSecondary, { textAlign: 'center', marginBottom: 40, lineHeight: 22 }]}>
+              Únete a la comunidad de ciberseguridad más activa de México. 
+              Participa en CTFs, talleres y charlas especializadas.
+            </Text>
+
+            {/* Features */}
+            <View style={{ width: '100%', marginBottom: 40 }}>
+              <FeatureItem 
+                emoji="🚩" 
+                title="Eventos CTF" 
+                description="Participa en competencias de ciberseguridad" 
+              />
+              <FeatureItem 
+                emoji="🛠️" 
+                title="Talleres Especializados" 
+                description="Aprende de expertos en seguridad informática" 
+              />
+              <FeatureItem 
+                emoji="💬" 
+                title="Charlas y Networking" 
+                description="Conecta con profesionales del sector" 
+              />
+              <FeatureItem 
+                emoji="🏆" 
+                title="Sistema de Badges" 
+                description="Desbloquea logros por tu participación" 
+              />
+            </View>
+
+            <TouchableOpacity
+              style={[buttonStyles.primary, { width: '100%', paddingVertical: 16 }]}
+              onPress={() => setShowAuthSheet(true)}
+            >
+              <Text style={[buttonStyles.primaryText, { fontSize: 18 }]}>Comenzar</Text>
+            </TouchableOpacity>
+          </View>
         </SafeAreaView>
 
         <AuthBottomSheet 
@@ -284,4 +277,3 @@ function AuthBottomSheet({ isVisible, onClose }: AuthBottomSheetProps) {
     </SimpleBottomSheet>
   );
 }
-
