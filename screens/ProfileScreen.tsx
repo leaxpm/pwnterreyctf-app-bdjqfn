@@ -8,7 +8,7 @@ import { useBadges } from '../hooks/useBadges';
 import { useAuth } from '../hooks/useAuth';
 import BadgeCard from '../components/BadgeCard';
 import { UserStats } from '../types/Badge';
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 
 export default function ProfileScreen() {
   const { user, userStats, updateProfile, updateStats, signIn, signUp, signOut, loading: authLoading } = useAuth();
@@ -25,10 +25,10 @@ export default function ProfileScreen() {
   const [authPassword, setAuthPassword] = useState('');
   const [authName, setAuthName] = useState('');
 
-  const unlockedBadges = useMemo(() => getUnlockedBadges(), [badges]);
-  const lockedBadges = useMemo(() => getLockedBadges(), [badges]);
+  const unlockedBadges = useMemo(() => getUnlockedBadges(), [getUnlockedBadges]);
+  const lockedBadges = useMemo(() => getLockedBadges(), [getLockedBadges]);
 
-  const handleSaveProfile = async () => {
+  const handleSaveProfile = useCallback(async () => {
     if (!user) return;
     
     const success = await updateProfile({
@@ -49,15 +49,15 @@ export default function ProfileScreen() {
     } else {
       Alert.alert('Error', 'No se pudo actualizar el perfil');
     }
-  };
+  }, [user, editedName, editedEmail, updateProfile, userStats, updateStats]);
 
-  const handleCancelEdit = () => {
+  const handleCancelEdit = useCallback(() => {
     setEditedName(user?.name || '');
     setEditedEmail(user?.email || '');
     setIsEditing(false);
-  };
+  }, [user]);
 
-  const handleAuth = async () => {
+  const handleAuth = useCallback(async () => {
     if (authMode === 'signin') {
       const result = await signIn(authEmail, authPassword);
       if (result.success) {
@@ -86,14 +86,14 @@ export default function ProfileScreen() {
         Alert.alert('Error', result.message);
       }
     }
-  };
+  }, [authMode, authEmail, authPassword, authName, signIn, signUp]);
 
-  const handleSignOut = async () => {
+  const handleSignOut = useCallback(async () => {
     const success = await signOut();
     if (success) {
       Alert.alert('Éxito', 'Sesión cerrada correctamente');
     }
-  };
+  }, [signOut]);
 
   if (authLoading) {
     return (

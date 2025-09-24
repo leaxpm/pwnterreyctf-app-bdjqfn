@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Badge, UserStats } from '../types/Badge';
 import { BadgeService } from '../services/badgeService';
 import { UserService } from '../services/userService';
@@ -10,17 +10,7 @@ export const useBadges = (userStats: UserStats) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    loadBadges();
-  }, []);
-
-  useEffect(() => {
-    if (badges.length > 0) {
-      checkAndUnlockBadges();
-    }
-  }, [userStats, badges.length]);
-
-  const loadBadges = async () => {
+  const loadBadges = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
@@ -61,9 +51,30 @@ export const useBadges = (userStats: UserStats) => {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
-  const checkAndUnlockBadges = async () => {
+  const updateBadgesLocally = useCallback(() => {
+    console.log('Updating badges locally with stats:', userStats);
+    
+    setBadges(prevBadges => 
+      prevBadges.map(badge => {
+        const shouldUnlock = BadgeService.checkBadgeRequirements(badge, userStats);
+        
+        if (shouldUnlock && !badge.isUnlocked) {
+          console.log(`Unlocking badge locally: ${badge.name}`);
+          return {
+            ...badge,
+            isUnlocked: true,
+            unlockedAt: new Date().toISOString()
+          };
+        }
+        
+        return badge;
+      })
+    );
+  }, [userStats]);
+
+  const checkAndUnlockBadges = useCallback(async () => {
     try {
       const currentUser = await UserService.getCurrentUser();
       if (!currentUser) {
@@ -86,44 +97,33 @@ export const useBadges = (userStats: UserStats) => {
       // Fallback to local checking
       updateBadgesLocally();
     }
-  };
+  }, [userStats, loadBadges, updateBadgesLocally]);
 
-  const updateBadgesLocally = () => {
-    console.log('Updating badges locally with stats:', userStats);
-    
-    setBadges(prevBadges => 
-      prevBadges.map(badge => {
-        const shouldUnlock = BadgeService.checkBadgeRequirements(badge, userStats);
-        
-        if (shouldUnlock && !badge.isUnlocked) {
-          console.log(`Unlocking badge locally: ${badge.name}`);
-          return {
-            ...badge,
-            isUnlocked: true,
-            unlockedAt: new Date().toISOString()
-          };
-        }
-        
-        return badge;
-      })
-    );
-  };
-
-  const getUnlockedBadges = () => {
-    return badges.filter(badge => badge.isUnlocked);
-  };
-
-  const getLockedBadges = () => {
-    return badges.filter(badge => !badge.isUnlocked);
-  };
-
-  const getBadgeProgress = (badge: Badge): number => {
-    return BadgeService.getBadgeProgress(badge, userStats);
-  };
-
-  const refreshBadges = () => {
+  useEffect(() => {
     loadBadges();
-  };
+  }, [loadBadges]);
+
+  useEffect(() => {
+    if (badges.length > 0) {
+      checkAndUnlockBadges();
+    }
+  }, [userStats, badges.length, checkAndUnlockBadges]);
+
+  const getUnlockedBadges = useCallback(() => {
+    return badges.filter(badge => badge.isUnlocked);
+  }, [badges]);
+
+  const getLockedBadges = useCallback(() => {
+    return badges.filter(badge => !badge.isUnlocked);
+  }, [badges]);
+
+  const getBadgeProgress = useCallback((badge: Badge): number => {
+    return BadgeService.getBadgeProgress(badge, userStats);
+  }, [userStats]);
+
+  const refreshBadges = useCallback(() => {
+    loadBadges();
+  }, [loadBadges]);
 
   return {
     badges,

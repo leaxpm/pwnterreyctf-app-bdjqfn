@@ -1,4 +1,5 @@
-import React, { useEffect, useRef, useState } from 'react';
+
+import React, { useEffect, useRef, useState, useCallback } from 'react';
 import {
   View,
   Text,
@@ -71,13 +72,13 @@ const SimpleBottomSheet: React.FC<SimpleBottomSheetProps> = ({
         }),
       ]).start();
     }
-  }, [isVisible, translateY, backdropOpacity]);
+  }, [isVisible, translateY, backdropOpacity, gestureTranslateY]);
 
   const handleBackdropPress = () => {
     onClose?.();
   };
 
-  const snapToPoint = (point: number) => {
+  const snapToPoint = useCallback((point: number) => {
     setCurrentSnapPoint(point);
     gestureTranslateY.setValue(0);
     Animated.timing(translateY, {
@@ -85,10 +86,10 @@ const SimpleBottomSheet: React.FC<SimpleBottomSheetProps> = ({
       duration: 300,
       useNativeDriver: true,
     }).start();
-  };
+  }, [translateY, gestureTranslateY]);
 
   // Determines the closest snap point based on velocity and position
-  const getClosestSnapPoint = (currentY: number, velocityY: number) => {
+  const getClosestSnapPoint = useCallback((currentY: number, velocityY: number) => {
     const currentPosition = SCREEN_HEIGHT - currentY;
 
     if (velocityY > 1000) return SNAP_POINTS.CLOSED;
@@ -105,10 +106,10 @@ const SimpleBottomSheet: React.FC<SimpleBottomSheetProps> = ({
 
     distances.sort((a, b) => a.distance - b.distance);
     return distances[0].point;
-  };
+  }, []);
 
   // Handles pan gesture events with boundary clamping
-  const onGestureEvent = (event: any) => {
+  const onGestureEvent = useCallback((event: any) => {
     const { translationY } = event.nativeEvent;
     lastGestureY.current = translationY;
 
@@ -122,10 +123,10 @@ const SimpleBottomSheet: React.FC<SimpleBottomSheetProps> = ({
     const clampedTranslation = clampedPosition - currentBasePosition;
 
     gestureTranslateY.setValue(clampedTranslation);
-  };
+  }, [currentSnapPoint, gestureTranslateY]);
 
   // Handles gesture state changes (begin/end) for snapping behavior
-  const onHandlerStateChange = (event: any) => {
+  const onHandlerStateChange = useCallback((event: any) => {
     const { state, translationY, velocityY } = event.nativeEvent;
 
     if (state === State.BEGAN) {
@@ -148,7 +149,7 @@ const SimpleBottomSheet: React.FC<SimpleBottomSheetProps> = ({
         snapToPoint(targetSnapPoint);
       }
     }
-  };
+  }, [currentSnapPoint, getClosestSnapPoint, gestureTranslateY, onClose, snapToPoint]);
 
   return (
     <Modal
