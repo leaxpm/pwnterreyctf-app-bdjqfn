@@ -1,89 +1,161 @@
+
 import { StyleSheet, ViewStyle, TextStyle } from 'react-native';
 
 export const colors = {
-  primary: '#162456',    // Material Blue
-  secondary: '#193cb8',  // Darker Blue
-  accent: '#64B5F6',     // Light Blue
-  background: '#101824',  // Keeping dark background
-  backgroundAlt: '#162133',  // Keeping dark background
-  text: '#e3e3e3',       // Keeping light text
-  grey: '#90CAF9',       // Light Blue Grey
-  card: '#193cb8',       // Keeping dark card background
+  primary: '#1a1a1a',      // Dark text color
+  secondary: '#666666',    // Gray text
+  accent: '#007AFF',       // Blue accent for buttons
+  background: '#FFFFFF',   // White background
+  backgroundAlt: '#F8F9FA', // Light gray background
+  text: '#1a1a1a',        // Dark text
+  textSecondary: '#666666', // Gray text
+  border: '#E5E5E7',      // Light border
+  card: '#FFFFFF',        // White card background
+  ctfTag: '#FF6B6B',      // Red for CTF tags
+  tallerTag: '#4ECDC4',   // Teal for Taller tags
+  charlaTag: '#45B7D1',   // Blue for Charla tags
+  yellow: '#FFD93D',      // Yellow for local data indicator
 };
 
 export const buttonStyles = StyleSheet.create({
-  instructionsButton: {
-    backgroundColor: colors.primary,
-    alignSelf: 'center',
-    width: '100%',
+  primary: {
+    backgroundColor: colors.accent,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 8,
   },
-  backButton: {
+  secondary: {
     backgroundColor: colors.backgroundAlt,
-    alignSelf: 'center',
-    width: '100%',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  tab: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 20,
+    marginHorizontal: 4,
+  },
+  tabActive: {
+    backgroundColor: colors.primary,
+  },
+  tabInactive: {
+    backgroundColor: 'transparent',
   },
 });
 
 export const commonStyles = StyleSheet.create({
-  wrapper: {
-    backgroundColor: colors.background,
-    width: '100%',
-    height: '100%',
-  },
   container: {
     flex: 1,
     backgroundColor: colors.background,
-    width: '100%',
-    height: '100%',
-    justifyContent: 'center',
-    alignItems: 'center',
   },
   content: {
     flex: 1,
+    paddingHorizontal: 16,
+  },
+  header: {
+    flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-    maxWidth: 800,
-    width: '100%',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    backgroundColor: colors.background,
   },
   title: {
     fontSize: 24,
-    fontWeight: '800',
-    textAlign: 'center',
+    fontWeight: '700',
     color: colors.text,
-    marginBottom: 10
   },
-  text: {
+  subtitle: {
     fontSize: 16,
     fontWeight: '500',
+    color: colors.textSecondary,
+  },
+  text: {
+    fontSize: 14,
     color: colors.text,
-    marginBottom: 8,
-    lineHeight: 24,
-    textAlign: 'center',
+    lineHeight: 20,
   },
-  section: {
-    width: '100%',
-    alignItems: 'center',
-    paddingHorizontal: 20,
-  },
-  buttonContainer: {
-    width: '100%',
-    alignItems: 'center',
-    paddingHorizontal: 20,
+  textSecondary: {
+    fontSize: 14,
+    color: colors.textSecondary,
+    lineHeight: 20,
   },
   card: {
-    backgroundColor: colors.backgroundAlt,
-    borderColor: colors.grey,
-    borderWidth: 1,
-    borderRadius: 10,
-    padding: 10,
-    marginVertical: 8,
-    width: '100%',
-    boxShadow: '0px 2px 3px rgba(0, 0, 0, 0.1)',
+    backgroundColor: colors.card,
+    borderRadius: 12,
+    padding: 16,
+    marginVertical: 6,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 1,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
     elevation: 2,
   },
-  icon: {
-    width: 60,
-    height: 60,
-    tintColor: "white",
+  tabContainer: {
+    flexDirection: 'row',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    backgroundColor: colors.background,
+  },
+  bottomTab: {
+    flex: 1,
+    alignItems: 'center',
+    paddingVertical: 8,
+  },
+  bottomTabBar: {
+    flexDirection: 'row',
+    backgroundColor: colors.background,
+    borderTopWidth: 1,
+    borderTopColor: colors.border,
+    paddingBottom: 20,
+    paddingTop: 8,
+  },
+  tag: {
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 4,
+    alignSelf: 'flex-start',
+    marginBottom: 8,
+  },
+  ctfTag: {
+    backgroundColor: colors.ctfTag,
+  },
+  tallerTag: {
+    backgroundColor: colors.tallerTag,
+  },
+  charlaTag: {
+    backgroundColor: colors.charlaTag,
+  },
+  tagText: {
+    color: colors.background,
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  favoriteButton: {
+    padding: 8,
+  },
+  registerButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.backgroundAlt,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  localDataIndicator: {
+    backgroundColor: colors.yellow,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
   },
 });
