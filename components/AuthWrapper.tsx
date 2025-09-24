@@ -19,7 +19,7 @@ export default function AuthWrapper({ children }: AuthWrapperProps) {
     return (
       <SafeAreaView style={commonStyles.container}>
         <View style={[commonStyles.container, { justifyContent: 'center', alignItems: 'center' }]}>
-          <Icon name="loader" size={48} color={colors.primary} />
+          <Icon name="reload" size={48} color={colors.primary} />
           <Text style={[commonStyles.text, { marginTop: 16 }]}>Cargando...</Text>
         </View>
       </SafeAreaView>
@@ -47,7 +47,7 @@ export default function AuthWrapper({ children }: AuthWrapperProps) {
                 alignItems: 'center',
                 marginBottom: 32,
               }}>
-                <Icon name="shield" size={60} color={colors.primary} />
+                <Icon name="shield-checkmark" size={60} color={colors.primary} />
               </View>
 
               <Text style={[commonStyles.title, { fontSize: 28, textAlign: 'center', marginBottom: 12 }]}>
@@ -62,22 +62,22 @@ export default function AuthWrapper({ children }: AuthWrapperProps) {
               {/* Features */}
               <View style={{ width: '100%', marginBottom: 40 }}>
                 <FeatureItem 
-                  icon="flag" 
+                  emoji="🚩" 
                   title="Eventos CTF" 
                   description="Participa en competencias de ciberseguridad" 
                 />
                 <FeatureItem 
-                  icon="book-open" 
+                  emoji="🛠️" 
                   title="Talleres Especializados" 
                   description="Aprende de expertos en seguridad informática" 
                 />
                 <FeatureItem 
-                  icon="users" 
+                  emoji="💬" 
                   title="Charlas y Networking" 
                   description="Conecta con profesionales del sector" 
                 />
                 <FeatureItem 
-                  icon="award" 
+                  emoji="🏆" 
                   title="Sistema de Badges" 
                   description="Desbloquea logros por tu participación" 
                 />
@@ -105,12 +105,12 @@ export default function AuthWrapper({ children }: AuthWrapperProps) {
 }
 
 interface FeatureItemProps {
-  icon: string;
+  emoji: string;
   title: string;
   description: string;
 }
 
-function FeatureItem({ icon, title, description }: FeatureItemProps) {
+function FeatureItem({ emoji, title, description }: FeatureItemProps) {
   return (
     <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 24 }}>
       <View style={{
@@ -122,7 +122,7 @@ function FeatureItem({ icon, title, description }: FeatureItemProps) {
         alignItems: 'center',
         marginRight: 16,
       }}>
-        <Icon name={icon as any} size={24} color={colors.primary} />
+        <Text style={{ fontSize: 24 }}>{emoji}</Text>
       </View>
       <View style={{ flex: 1 }}>
         <Text style={[commonStyles.subtitle, { fontSize: 16, marginBottom: 4 }]}>
@@ -284,3 +284,4 @@ function AuthBottomSheet({ isVisible, onClose }: AuthBottomSheetProps) {
     </SimpleBottomSheet>
   );
 }
+
