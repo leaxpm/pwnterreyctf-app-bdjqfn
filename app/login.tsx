@@ -72,20 +72,15 @@ export default function LoginScreen() {
         if (result.success) {
           console.log('Account created successfully, redirecting to verification screen');
           resetForm();
-          // Show success message and redirect to email verification screen
-          Alert.alert(
-            'Cuenta creada exitosamente',
-            'Hemos enviado un enlace de verificación a tu correo electrónico. Por favor verifica tu cuenta antes de iniciar sesión.',
-            [
-              {
-                text: 'Entendido',
-                onPress: () => {
-                  console.log('User acknowledged, navigating to email verification');
-                  router.replace('/email-verification');
-                }
-              }
-            ]
-          );
+          // Redirect immediately to email verification screen
+          router.replace('/email-verification');
+          // Show success message after navigation
+          setTimeout(() => {
+            Alert.alert(
+              'Cuenta creada exitosamente',
+              'Hemos enviado un enlace de verificación a tu correo electrónico. Por favor verifica tu cuenta antes de iniciar sesión.'
+            );
+          }, 500);
         } else {
           console.log('Sign up failed:', result.message);
           Alert.alert('Error de registro', result.message);
@@ -111,6 +106,7 @@ export default function LoginScreen() {
   };
 
   const handleGoBack = () => {
+    console.log('Going back to welcome screen');
     router.back();
   };
 

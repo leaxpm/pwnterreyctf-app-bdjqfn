@@ -7,25 +7,28 @@ import { colors, commonStyles, buttonStyles } from '../styles/commonStyles';
 import Icon from '../components/Icon';
 
 export default function EmailVerificationScreen() {
-  const handleGoToLogin = () => {
+  const handleGoBack = () => {
+    console.log('Going back to login screen');
     router.replace('/login');
   };
 
   const handleGoHome = () => {
+    console.log('Going to home screen');
     router.replace('/');
   };
 
   return (
     <SafeAreaView style={commonStyles.container}>
-      <View style={{ flex: 1, padding: 20 }}>
-        {/* Header */}
+      <View style={{ flex: 1 }}>
+        {/* Header with Back Arrow */}
         <View style={{
           flexDirection: 'row',
           alignItems: 'center',
-          marginBottom: 40,
+          padding: 20,
+          paddingBottom: 10,
         }}>
           <TouchableOpacity
-            onPress={handleGoHome}
+            onPress={handleGoBack}
             style={{
               width: 40,
               height: 40,
@@ -38,7 +41,7 @@ export default function EmailVerificationScreen() {
               borderColor: colors.border,
             }}
           >
-            <Icon name="close" size={20} color={colors.text} />
+            <Icon name="arrow-back" size={20} color={colors.text} />
           </TouchableOpacity>
           <Text style={[commonStyles.title, { fontSize: 24 }]}>
             Verificación de Email
@@ -125,10 +128,10 @@ export default function EmailVerificationScreen() {
           <View style={{ width: '100%' }}>
             <TouchableOpacity
               style={[buttonStyles.primary, { marginBottom: 12 }]}
-              onPress={handleGoToLogin}
+              onPress={handleGoBack}
             >
               <Text style={buttonStyles.primaryText}>
-                Ir a Iniciar Sesión
+                Volver al Login
               </Text>
             </TouchableOpacity>
 
@@ -137,7 +140,7 @@ export default function EmailVerificationScreen() {
               onPress={handleGoHome}
             >
               <Text style={buttonStyles.secondaryText}>
-                Volver al Inicio
+                Ir al Inicio
               </Text>
             </TouchableOpacity>
           </View>
@@ -151,6 +154,8 @@ export default function EmailVerificationScreen() {
           borderRadius: 8,
           borderWidth: 1,
           borderColor: colors.border,
+          marginHorizontal: 20,
+          marginBottom: 20,
         }}>
           <Text style={[
             commonStyles.textSecondary, 
