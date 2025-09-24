@@ -7,6 +7,8 @@ import { colors, commonStyles, buttonStyles } from '../styles/commonStyles';
 import Icon from '../components/Icon';
 
 export default function EmailVerificationScreen() {
+  console.log('EmailVerificationScreen rendered');
+  
   const handleGoBack = () => {
     console.log('Going back to login screen');
     router.replace('/login');

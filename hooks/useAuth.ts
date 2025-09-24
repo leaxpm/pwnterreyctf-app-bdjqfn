@@ -105,35 +105,15 @@ export const useAuth = () => {
       }
 
       if (data.user) {
-        console.log('Auth user created, checking/creating profile...');
+        console.log('Auth user created successfully');
         
-        try {
-          // Wait a bit for the trigger to create the profile, then update it
-          await new Promise(resolve => setTimeout(resolve, 1500));
-          
-          // Create or update user profile with the auth user ID
-          const newUser = await UserService.createOrUpdateUser({
-            name,
-            email,
-            avatar: undefined,
-          }, data.user.id);
-          
-          if (newUser) {
-            setUser(newUser);
-            console.log('User profile created/updated successfully');
-            return { 
-              success: true, 
-              message: 'Cuenta creada exitosamente. Por favor verifica tu email antes de iniciar sesión.',
-              needsVerification: !data.user.email_confirmed_at
-            };
-          } else {
-            console.error('Failed to create/update user profile');
-            return { success: false, message: 'Error creando el perfil de usuario' };
-          }
-        } catch (profileError) {
-          console.error('Error creating/updating user profile:', profileError);
-          return { success: false, message: 'Error creando el perfil de usuario: ' + (profileError as Error).message };
-        }
+        // For email verification flow, we don't need to wait for profile creation
+        // The user will be created when they verify their email
+        return { 
+          success: true, 
+          message: 'Cuenta creada exitosamente. Por favor verifica tu email antes de iniciar sesión.',
+          needsVerification: !data.user.email_confirmed_at
+        };
       }
 
       return { success: false, message: 'Error creating user account' };

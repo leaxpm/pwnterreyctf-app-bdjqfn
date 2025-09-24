@@ -69,22 +69,52 @@ export default function LoginScreen() {
       } else {
         console.log('Attempting to sign up user:', email);
         const result = await signUp(email.trim(), password, name.trim());
+        console.log('SignUp result:', result);
+        
         if (result.success) {
           console.log('Account created successfully, redirecting to verification screen');
           resetForm();
-          // Redirect immediately to email verification screen
-          router.replace('/email-verification');
-          // Show success message after navigation
+          
+          // Navigate immediately
+          console.log('About to navigate to /email-verification');
+          router.push('/email-verification');
+          
+          // Show success message after a short delay
           setTimeout(() => {
             Alert.alert(
               'Cuenta creada exitosamente',
               'Hemos enviado un enlace de verificación a tu correo electrónico. Por favor verifica tu cuenta antes de iniciar sesión.'
             );
-          }, 500);
+          }, 100);
         } else {
           console.log('Sign up failed:', result.message);
           Alert.alert('Error de registro', result.message);
         }
+        
+        /* Original signup code - commented for testing
+        const result = await signUp(email.trim(), password, name.trim());
+        console.log('SignUp result:', result);
+        
+        if (result.success) {
+          console.log('Account created successfully, redirecting to verification screen');
+          resetForm();
+          
+          // Navigate immediately
+          console.log('About to navigate to /email-verification');
+          router.push('/email-verification');
+          
+          // Show success message after a short delay
+          setTimeout(() => {
+            Alert.alert(
+              'Cuenta creada exitosamente',
+              'Hemos enviado un enlace de verificación a tu correo electrónico. Por favor verifica tu cuenta antes de iniciar sesión.'
+            );
+          }, 100);
+        } else {
+          console.log('Sign up failed:', result.message);
+          Alert.alert('Error de registro', result.message);
+        }
+        */
       }
     } catch (err) {
       console.error('Auth error:', err);
@@ -243,6 +273,8 @@ export default function LoginScreen() {
                 {loading ? 'Procesando...' : (authMode === 'signin' ? 'Iniciar Sesión' : 'Crear Cuenta')}
               </Text>
             </TouchableOpacity>
+
+
 
             <TouchableOpacity
               style={buttonStyles.secondary}

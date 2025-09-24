@@ -18,6 +18,16 @@ export default function AuthWrapper({ children }: AuthWrapperProps) {
   // Allow access to login and email verification screens without authentication
   const publicRoutes = ['/login', '/email-verification'];
   const isPublicRoute = publicRoutes.includes(pathname);
+  
+  console.log('AuthWrapper - Current pathname:', pathname);
+  console.log('AuthWrapper - Is public route:', isPublicRoute);
+  console.log('AuthWrapper - User exists:', !!user);
+
+  // Always allow access to public routes regardless of auth state
+  if (isPublicRoute) {
+    console.log('AuthWrapper - Allowing access to public route');
+    return <>{children}</>;
+  }
 
   if (loading) {
     return (
@@ -31,7 +41,7 @@ export default function AuthWrapper({ children }: AuthWrapperProps) {
   }
 
   // If user is not authenticated and trying to access a protected route, show welcome screen
-  if (!user && !isPublicRoute) {
+  if (!user) {
     return (
       <SafeAreaView style={commonStyles.container}>
         <View style={[commonStyles.container, { justifyContent: 'center', alignItems: 'center', padding: 20 }]}>
@@ -87,6 +97,8 @@ export default function AuthWrapper({ children }: AuthWrapperProps) {
           >
             <Text style={[buttonStyles.primaryText, { fontSize: 18 }]}>Comenzar</Text>
           </TouchableOpacity>
+
+
         </View>
       </SafeAreaView>
     );
