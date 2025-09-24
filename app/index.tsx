@@ -7,6 +7,7 @@ import BottomTabBar from '../components/BottomTabBar';
 import HomeScreen from '../screens/HomeScreen';
 import CTFScreen from '../screens/CTFScreen';
 import WorkshopScreen from '../screens/WorkshopScreen';
+import TalksScreen from '../screens/TalksScreen';
 import FavoritesScreen from '../screens/FavoritesScreen';
 import ProfileScreen from '../screens/ProfileScreen';
 
@@ -26,6 +27,8 @@ export default function MainScreen() {
         return <CTFScreen />;
       case 'talleres':
         return <WorkshopScreen />;
+      case 'charlas':
+        return <TalksScreen />;
       case 'favoritos':
         return <FavoritesScreen />;
       case 'perfil':

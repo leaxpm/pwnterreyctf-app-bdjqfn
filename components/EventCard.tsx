@@ -37,6 +37,32 @@ const EventCard: React.FC<EventCardProps> = ({ event, onToggleFavorite, onRegist
     onToggleFavorite(event.id);
   };
 
+  const getActionButtonText = () => {
+    switch (event.type) {
+      case 'Charla':
+        return event.isFavorite ? 'Suscrito' : 'Suscribirse';
+      case 'Taller':
+        return 'Registrarse';
+      case 'CTF':
+        return 'Participar';
+      default:
+        return 'Registrarse';
+    }
+  };
+
+  const getActionButtonIcon = () => {
+    switch (event.type) {
+      case 'Charla':
+        return event.isFavorite ? 'checkmark-circle' : 'add-circle-outline';
+      case 'Taller':
+        return 'open-outline';
+      case 'CTF':
+        return 'flag-outline';
+      default:
+        return 'open-outline';
+    }
+  };
+
   return (
     <View style={commonStyles.card}>
       <View style={styles.header}>
@@ -85,12 +111,23 @@ const EventCard: React.FC<EventCardProps> = ({ event, onToggleFavorite, onRegist
       <View style={styles.footer}>
         <Text style={commonStyles.textSecondary}>{event.date}</Text>
         <TouchableOpacity 
-          style={commonStyles.registerButton}
-          onPress={handleRegister}
+          style={[
+            commonStyles.registerButton,
+            event.type === 'Charla' && event.isFavorite && styles.subscribedButton
+          ]}
+          onPress={event.type === 'Charla' ? handleToggleFavorite : handleRegister}
         >
-          <Icon name="open-outline" size={16} color={colors.textSecondary} />
-          <Text style={[commonStyles.textSecondary, { marginLeft: 4 }]}>
-            Registrarse
+          <Icon 
+            name={getActionButtonIcon()} 
+            size={16} 
+            color={event.type === 'Charla' && event.isFavorite ? colors.accent : colors.textSecondary} 
+          />
+          <Text style={[
+            commonStyles.textSecondary, 
+            { marginLeft: 4 },
+            event.type === 'Charla' && event.isFavorite && { color: colors.accent }
+          ]}>
+            {getActionButtonText()}
           </Text>
         </TouchableOpacity>
       </View>
@@ -144,6 +181,10 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     marginTop: 8,
+  },
+  subscribedButton: {
+    borderColor: colors.accent,
+    backgroundColor: colors.background,
   },
 });
 

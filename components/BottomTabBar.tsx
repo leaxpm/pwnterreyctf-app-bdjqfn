@@ -14,6 +14,7 @@ const BottomTabBar: React.FC<BottomTabBarProps> = ({ activeTab, onTabChange }) =
     { key: 'inicio', label: 'Inicio', icon: 'home-outline' },
     { key: 'ctfs', label: 'CTFs', icon: 'flag-outline' },
     { key: 'talleres', label: 'Talleres', icon: 'library-outline' },
+    { key: 'charlas', label: 'Charlas', icon: 'chatbubbles-outline' },
     { key: 'favoritos', label: 'Favoritos', icon: 'star-outline' },
     { key: 'perfil', label: 'Perfil', icon: 'person-outline' },
   ];
@@ -31,14 +32,14 @@ const BottomTabBar: React.FC<BottomTabBarProps> = ({ activeTab, onTabChange }) =
         >
           <Icon 
             name={tab.icon as any} 
-            size={26} 
+            size={24} 
             color={activeTab === tab.key ? colors.accent : colors.textSecondary} 
           />
           <Text
             style={{
-              fontSize: 11,
+              fontSize: 10,
               color: activeTab === tab.key ? colors.accent : colors.textSecondary,
-              marginTop: 4,
+              marginTop: 2,
               fontWeight: activeTab === tab.key ? '600' : '400',
               textAlign: 'center',
             }}

@@ -11,42 +11,49 @@ const FavoritesScreen: React.FC = () => {
   const { getFavoriteEvents, toggleFavorite } = useEvents();
   const favoriteEvents = getFavoriteEvents();
 
+  console.log('FavoritesScreen rendered with favorites:', favoriteEvents.length);
+
   const handleRegister = (eventId: string) => {
     console.log('Registering for favorite event:', eventId);
     // Here you would implement the registration logic
   };
 
   return (
-    <SafeAreaView style={commonStyles.container}>
+    <SafeAreaView style={commonStyles.container} edges={['top']}>
       <View style={commonStyles.header}>
-        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-          <Icon name="star" size={24} color="#FFD700" />
-          <Text style={[commonStyles.title, { marginLeft: 8 }]}>Favoritos</Text>
+        <View style={commonStyles.headerContent}>
+          <Icon name="star" size={28} color="#FFD700" />
+          <Text style={commonStyles.headerTitle}>Favoritos</Text>
         </View>
-        <Text style={commonStyles.textSecondary}>
-          {favoriteEvents.length} eventos
+        <Text style={commonStyles.headerSubtitle}>
+          {favoriteEvents.length} eventos guardados
         </Text>
       </View>
 
-      <ScrollView style={commonStyles.content} showsVerticalScrollIndicator={false}>
-        {favoriteEvents.map((event) => (
-          <EventCard
-            key={event.id}
-            event={event}
-            onToggleFavorite={toggleFavorite}
-            onRegister={handleRegister}
-          />
-        ))}
-        
-        {favoriteEvents.length === 0 && (
-          <View style={{ alignItems: 'center', marginTop: 40 }}>
-            <Icon name="star-outline" size={48} color={colors.textSecondary} />
-            <Text style={[commonStyles.textSecondary, { marginTop: 16, textAlign: 'center' }]}>
-              No tienes eventos favoritos
+      <ScrollView 
+        style={commonStyles.content} 
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingBottom: 20 }}
+      >
+        {favoriteEvents.length === 0 ? (
+          <View style={commonStyles.emptyState}>
+            <Icon name="star-outline" size={64} color={colors.textSecondary} />
+            <Text style={commonStyles.emptyStateTitle}>No tienes eventos favoritos</Text>
+            <Text style={commonStyles.emptyStateSubtitle}>
+              Marca eventos como favoritos para verlos aquí.{'\n'}
+              Para charlas, usa el botón "Suscribirse" para agregarlas a favoritos.
             </Text>
-            <Text style={[commonStyles.textSecondary, { marginTop: 8, textAlign: 'center' }]}>
-              Marca eventos como favoritos para verlos aquí
-            </Text>
+          </View>
+        ) : (
+          <View style={commonStyles.eventList}>
+            {favoriteEvents.map((event) => (
+              <EventCard
+                key={event.id}
+                event={event}
+                onToggleFavorite={toggleFavorite}
+                onRegister={handleRegister}
+              />
+            ))}
           </View>
         )}
       </ScrollView>
