@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { router } from 'expo-router';
+import { router, usePathname } from 'expo-router';
 import { useAuth } from '../hooks/useAuth';
 import { colors, commonStyles, buttonStyles } from '../styles/commonStyles';
 import Icon from './Icon';
@@ -13,6 +13,11 @@ interface AuthWrapperProps {
 
 export default function AuthWrapper({ children }: AuthWrapperProps) {
   const { user, loading } = useAuth();
+  const pathname = usePathname();
+
+  // Allow access to login and email verification screens without authentication
+  const publicRoutes = ['/login', '/email-verification'];
+  const isPublicRoute = publicRoutes.includes(pathname);
 
   if (loading) {
     return (
@@ -25,7 +30,8 @@ export default function AuthWrapper({ children }: AuthWrapperProps) {
     );
   }
 
-  if (!user) {
+  // If user is not authenticated and trying to access a protected route, show welcome screen
+  if (!user && !isPublicRoute) {
     return (
       <SafeAreaView style={commonStyles.container}>
         <View style={[commonStyles.container, { justifyContent: 'center', alignItems: 'center', padding: 20 }]}>
