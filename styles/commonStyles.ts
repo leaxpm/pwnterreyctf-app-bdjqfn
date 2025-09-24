@@ -49,6 +49,11 @@ export const commonStyles = StyleSheet.create({
     fontSize: 14,
     color: colors.textSecondary,
   },
+  label: {
+    fontSize: 16,
+    fontWeight: '500',
+    color: colors.text,
+  },
   input: {
     backgroundColor: colors.surface,
     borderWidth: 1,
