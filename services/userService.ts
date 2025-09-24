@@ -43,25 +43,62 @@ export class UserService {
     }
   }
 
-  static async createUser(userData: Omit<User, 'id' | 'favoriteEvents'>): Promise<User | null> {
+  static async createOrUpdateUser(userData: Omit<User, 'id' | 'favoriteEvents'>, authUserId: string): Promise<User | null> {
     try {
-      console.log('Creating new user:', userData.email);
+      console.log('Creating or updating user profile for:', userData.email, 'with ID:', authUserId);
       
-      // Get the current authenticated user
-      const { data: { user }, error: authError } = await supabase.auth.getUser();
-      
-      if (authError || !user) {
-        console.error('No authenticated user found');
-        return null;
+      // First, check if user profile already exists
+      const { data: existingUser, error: checkError } = await supabase
+        .from('users')
+        .select('*')
+        .eq('id', authUserId)
+        .single();
+
+      if (existingUser) {
+        console.log('User profile already exists, updating with provided data');
+        
+        // Update existing user with new data
+        const { data: updatedUser, error: updateError } = await supabase
+          .from('users')
+          .update({
+            name: userData.name,
+            email: userData.email,
+            avatar: userData.avatar || null,
+            updated_at: new Date().toISOString(),
+          })
+          .eq('id', authUserId)
+          .select()
+          .single();
+
+        if (updateError) {
+          console.error('Error updating existing user:', updateError);
+          throw updateError;
+        }
+
+        const favoriteEvents = await this.getUserFavorites(authUserId);
+        
+        return {
+          id: updatedUser.id,
+          name: updatedUser.name,
+          email: updatedUser.email,
+          avatar: updatedUser.avatar,
+          favoriteEvents,
+        };
       }
 
+      if (checkError && checkError.code !== 'PGRST116') {
+        console.error('Error checking existing user:', checkError);
+        throw checkError;
+      }
+
+      // Create new user profile (this might not be needed if trigger is working)
       const { data, error } = await supabase
         .from('users')
         .insert({
-          id: user.id, // Use the auth user ID
+          id: authUserId,
           name: userData.name,
           email: userData.email,
-          avatar: userData.avatar,
+          avatar: userData.avatar || null,
           stats: {
             eventsAttended: 0,
             ctfsCompleted: 0,
@@ -74,11 +111,11 @@ export class UserService {
         .single();
 
       if (error) {
-        console.error('Error creating user:', error);
+        console.error('Error creating user profile:', error);
         throw error;
       }
 
-      console.log('User created successfully:', data.id);
+      console.log('User profile created successfully:', data.id);
       
       return {
         id: data.id,
@@ -88,8 +125,8 @@ export class UserService {
         favoriteEvents: [],
       };
     } catch (error) {
-      console.error('Error in createUser:', error);
-      return null;
+      console.error('Error in createOrUpdateUser:', error);
+      throw error;
     }
   }
 
@@ -102,7 +139,7 @@ export class UserService {
         .update({
           ...(updates.name && { name: updates.name }),
           ...(updates.email && { email: updates.email }),
-          ...(updates.avatar && { avatar: updates.avatar }),
+          ...(updates.avatar !== undefined && { avatar: updates.avatar }),
           updated_at: new Date().toISOString(),
         })
         .eq('id', userId)

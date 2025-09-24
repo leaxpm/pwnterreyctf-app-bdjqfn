@@ -15,9 +15,29 @@ export default function LoginScreen() {
   const [name, setName] = useState('');
   const [loading, setLoading] = useState(false);
 
+  const validateEmail = (email: string) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  };
+
+  const validatePassword = (password: string) => {
+    return password.length >= 6;
+  };
+
   const handleAuth = async () => {
+    // Validation
     if (!email.trim() || !password.trim()) {
       Alert.alert('Error', 'Por favor completa todos los campos');
+      return;
+    }
+
+    if (!validateEmail(email)) {
+      Alert.alert('Error', 'Por favor ingresa un email válido');
+      return;
+    }
+
+    if (!validatePassword(password)) {
+      Alert.alert('Error', 'La contraseña debe tener al menos 6 caracteres');
       return;
     }
 
@@ -26,36 +46,52 @@ export default function LoginScreen() {
       return;
     }
 
+    if (authMode === 'signup' && name.trim().length < 2) {
+      Alert.alert('Error', 'El nombre debe tener al menos 2 caracteres');
+      return;
+    }
+
     setLoading(true);
 
     try {
       if (authMode === 'signin') {
-        const result = await signIn(email, password);
+        const result = await signIn(email.trim(), password);
         if (result.success) {
           Alert.alert('Éxito', result.message);
           router.replace('/');
           resetForm();
         } else {
-          Alert.alert('Error', result.message);
+          Alert.alert('Error de inicio de sesión', result.message);
         }
       } else {
-        const result = await signUp(email, password, name);
+        const result = await signUp(email.trim(), password, name.trim());
         if (result.success) {
-          Alert.alert('Éxito', result.message);
+          Alert.alert('Cuenta creada', result.message);
           if (result.needsVerification) {
             Alert.alert(
               'Verificación requerida', 
-              'Hemos enviado un enlace de verificación a tu email. Por favor verifica tu cuenta antes de iniciar sesión.'
+              'Hemos enviado un enlace de verificación a tu email. Por favor verifica tu cuenta antes de iniciar sesión.',
+              [
+                {
+                  text: 'Entendido',
+                  onPress: () => {
+                    setAuthMode('signin');
+                    setPassword('');
+                  }
+                }
+              ]
             );
+          } else {
+            router.replace('/');
           }
-          router.replace('/');
           resetForm();
         } else {
-          Alert.alert('Error', result.message);
+          Alert.alert('Error de registro', result.message);
         }
       }
     } catch (err) {
-      Alert.alert('Error', 'Ocurrió un error inesperado');
+      console.error('Auth error:', err);
+      Alert.alert('Error', 'Ocurrió un error inesperado. Por favor intenta de nuevo.');
     } finally {
       setLoading(false);
     }
@@ -147,7 +183,7 @@ export default function LoginScreen() {
               borderLeftColor: colors.error,
               marginBottom: 20,
             }}>
-              <Text style={{ color: colors.error }}>{error}</Text>
+              <Text style={{ color: colors.error, fontSize: 14 }}>{error}</Text>
             </View>
           )}
 
@@ -157,12 +193,13 @@ export default function LoginScreen() {
               <View style={{ marginBottom: 16 }}>
                 <Text style={[commonStyles.label, { marginBottom: 8 }]}>Nombre completo</Text>
                 <TextInput
-                  style={commonStyles.input}
+                  style={[commonStyles.input, loading && { opacity: 0.6 }]}
                   placeholder="Ingresa tu nombre completo"
                   value={name}
                   onChangeText={setName}
                   placeholderTextColor={colors.textSecondary}
                   editable={!loading}
+                  autoCapitalize="words"
                 />
               </View>
             )}
@@ -170,12 +207,13 @@ export default function LoginScreen() {
             <View style={{ marginBottom: 16 }}>
               <Text style={[commonStyles.label, { marginBottom: 8 }]}>Email</Text>
               <TextInput
-                style={commonStyles.input}
+                style={[commonStyles.input, loading && { opacity: 0.6 }]}
                 placeholder="ejemplo@correo.com"
                 value={email}
                 onChangeText={setEmail}
                 keyboardType="email-address"
                 autoCapitalize="none"
+                autoComplete="email"
                 placeholderTextColor={colors.textSecondary}
                 editable={!loading}
               />
@@ -184,11 +222,12 @@ export default function LoginScreen() {
             <View style={{ marginBottom: 24 }}>
               <Text style={[commonStyles.label, { marginBottom: 8 }]}>Contraseña</Text>
               <TextInput
-                style={commonStyles.input}
-                placeholder="Ingresa tu contraseña"
+                style={[commonStyles.input, loading && { opacity: 0.6 }]}
+                placeholder="Mínimo 6 caracteres"
                 value={password}
                 onChangeText={setPassword}
                 secureTextEntry
+                autoComplete={authMode === 'signin' ? 'password' : 'new-password'}
                 placeholderTextColor={colors.textSecondary}
                 editable={!loading}
               />
@@ -203,7 +242,7 @@ export default function LoginScreen() {
               disabled={loading}
             >
               <Text style={buttonStyles.primaryText}>
-                {loading ? 'Cargando...' : (authMode === 'signin' ? 'Iniciar Sesión' : 'Crear Cuenta')}
+                {loading ? 'Procesando...' : (authMode === 'signin' ? 'Iniciar Sesión' : 'Crear Cuenta')}
               </Text>
             </TouchableOpacity>
 
@@ -234,6 +273,23 @@ export default function LoginScreen() {
               </Text>
             </View>
           )}
+
+          {/* Help Text */}
+          <View style={{
+            marginTop: 30,
+            padding: 16,
+            backgroundColor: colors.background,
+            borderRadius: 8,
+            borderWidth: 1,
+            borderColor: colors.border,
+          }}>
+            <Text style={[commonStyles.textSecondary, { fontSize: 12, textAlign: 'center' }]}>
+              {authMode === 'signin' 
+                ? 'Si tienes problemas para iniciar sesión, verifica que tu email esté confirmado.'
+                : 'Después de registrarte, recibirás un email de confirmación. Debes verificar tu cuenta antes de poder iniciar sesión.'
+              }
+            </Text>
+          </View>
         </View>
       </ScrollView>
     </SafeAreaView>

@@ -67,6 +67,9 @@ export const useAuth = () => {
 
   const loadUserData = async (userId: string) => {
     try {
+      // Add a small delay to ensure the trigger has time to create the profile
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
       const userData = await UserService.getCurrentUser();
       if (userData) {
         setUser(userData);
@@ -88,7 +91,10 @@ export const useAuth = () => {
         email,
         password,
         options: {
-          emailRedirectTo: 'https://natively.dev/email-confirmed'
+          emailRedirectTo: 'https://natively.dev/email-confirmed',
+          data: {
+            name: name
+          }
         }
       });
 
@@ -99,29 +105,43 @@ export const useAuth = () => {
       }
 
       if (data.user) {
-        // Create user profile
-        const newUser = await UserService.createUser({
-          name,
-          email,
-          avatar: undefined,
-        });
+        console.log('Auth user created, checking/creating profile...');
         
-        if (newUser) {
-          setUser(newUser);
-          console.log('User signed up successfully');
-          return { 
-            success: true, 
-            message: 'Cuenta creada exitosamente. Por favor verifica tu email antes de iniciar sesión.',
-            needsVerification: !data.user.email_confirmed_at
-          };
+        try {
+          // Wait a bit for the trigger to create the profile, then update it
+          await new Promise(resolve => setTimeout(resolve, 1500));
+          
+          // Create or update user profile with the auth user ID
+          const newUser = await UserService.createOrUpdateUser({
+            name,
+            email,
+            avatar: undefined,
+          }, data.user.id);
+          
+          if (newUser) {
+            setUser(newUser);
+            console.log('User profile created/updated successfully');
+            return { 
+              success: true, 
+              message: 'Cuenta creada exitosamente. Por favor verifica tu email antes de iniciar sesión.',
+              needsVerification: !data.user.email_confirmed_at
+            };
+          } else {
+            console.error('Failed to create/update user profile');
+            return { success: false, message: 'Error creando el perfil de usuario' };
+          }
+        } catch (profileError) {
+          console.error('Error creating/updating user profile:', profileError);
+          return { success: false, message: 'Error creando el perfil de usuario: ' + (profileError as Error).message };
         }
       }
 
-      return { success: false, message: 'Error creating user profile' };
+      return { success: false, message: 'Error creating user account' };
     } catch (err) {
       console.error('Error in signUp:', err);
-      setError('Error creating account');
-      return { success: false, message: 'Error creating account' };
+      const errorMessage = err instanceof Error ? err.message : 'Error creating account';
+      setError(errorMessage);
+      return { success: false, message: errorMessage };
     }
   };
 
@@ -150,8 +170,9 @@ export const useAuth = () => {
       return { success: false, message: 'Error signing in' };
     } catch (err) {
       console.error('Error in signIn:', err);
-      setError('Error signing in');
-      return { success: false, message: 'Error signing in' };
+      const errorMessage = err instanceof Error ? err.message : 'Error signing in';
+      setError(errorMessage);
+      return { success: false, message: errorMessage };
     }
   };
 
