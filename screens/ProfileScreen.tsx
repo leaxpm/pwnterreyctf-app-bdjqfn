@@ -1,10 +1,13 @@
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, TextInput, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { colors, commonStyles, buttonStyles } from '../styles/commonStyles';
 import Icon from '../components/Icon';
 import SimpleBottomSheet from '../components/BottomSheet';
+import BadgeCard from '../components/BadgeCard';
+import { useBadges } from '../hooks/useBadges';
+import { UserStats } from '../types/Badge';
 
 const ProfileScreen: React.FC = () => {
   const [user, setUser] = useState({
@@ -15,6 +18,26 @@ const ProfileScreen: React.FC = () => {
   });
   const [isEditingProfile, setIsEditingProfile] = useState(false);
   const [tempUser, setTempUser] = useState(user);
+
+  // Mock user stats - in a real app, these would come from the database
+  const [userStats] = useState<UserStats>({
+    eventsAttended: 0,
+    ctfsCompleted: 0,
+    workshopsTaken: 0,
+    pointsEarned: 0,
+    profileComplete: false,
+  });
+
+  // Update profile completion status based on user data
+  const updatedUserStats = useMemo<UserStats>(() => {
+    const isProfileComplete = !!(user.name && user.name !== 'Usuario Anónimo' && user.email && user.team);
+    return {
+      ...userStats,
+      profileComplete: isProfileComplete,
+    };
+  }, [user, userStats]);
+
+  const { badges, getUnlockedBadges, getLockedBadges, getBadgeProgress } = useBadges(updatedUserStats);
 
   const handleSaveProfile = () => {
     console.log('Saving profile:', tempUser);
@@ -29,11 +52,14 @@ const ProfileScreen: React.FC = () => {
   };
 
   const stats = [
-    { label: 'Eventos asistidos', value: '0' },
-    { label: 'CTFs completados', value: '0' },
-    { label: 'Talleres tomados', value: '0' },
-    { label: 'Puntos totales', value: '0' },
+    { label: 'Eventos asistidos', value: updatedUserStats.eventsAttended.toString() },
+    { label: 'CTFs completados', value: updatedUserStats.ctfsCompleted.toString() },
+    { label: 'Talleres tomados', value: updatedUserStats.workshopsTaken.toString() },
+    { label: 'Puntos totales', value: updatedUserStats.pointsEarned.toString() },
   ];
+
+  const unlockedBadges = getUnlockedBadges();
+  const lockedBadges = getLockedBadges();
 
   return (
     <SafeAreaView style={commonStyles.container}>
@@ -91,6 +117,53 @@ const ProfileScreen: React.FC = () => {
               <Text style={[commonStyles.text, { fontWeight: '600' }]}>{stat.value}</Text>
             </View>
           ))}
+        </View>
+
+        {/* Badges Section */}
+        <View style={commonStyles.card}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 16 }}>
+            <Icon name="medal" size={20} color={colors.accent} />
+            <Text style={[commonStyles.subtitle, { marginLeft: 8 }]}>
+              Insignias ({unlockedBadges.length}/{badges.length})
+            </Text>
+          </View>
+          
+          {unlockedBadges.length > 0 && (
+            <View style={{ marginBottom: 16 }}>
+              <Text style={[commonStyles.text, { fontWeight: '600', marginBottom: 8 }]}>
+                Desbloqueadas
+              </Text>
+              {unlockedBadges.map((badge) => (
+                <BadgeCard key={badge.id} badge={badge} />
+              ))}
+            </View>
+          )}
+          
+          {lockedBadges.length > 0 && (
+            <View>
+              <Text style={[commonStyles.text, { fontWeight: '600', marginBottom: 8 }]}>
+                Por desbloquear
+              </Text>
+              {lockedBadges.slice(0, 4).map((badge) => (
+                <BadgeCard 
+                  key={badge.id} 
+                  badge={badge} 
+                  progress={getBadgeProgress(badge)}
+                />
+              ))}
+              {lockedBadges.length > 4 && (
+                <Text style={[commonStyles.textSecondary, { textAlign: 'center', marginTop: 8 }]}>
+                  +{lockedBadges.length - 4} insignias más por desbloquear
+                </Text>
+              )}
+            </View>
+          )}
+          
+          {badges.length === 0 && (
+            <Text style={[commonStyles.textSecondary, { textAlign: 'center', fontStyle: 'italic' }]}>
+              No hay insignias disponibles
+            </Text>
+          )}
         </View>
 
         <View style={commonStyles.card}>
