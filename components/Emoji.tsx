@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Text, TextStyle } from 'react-native';
+import { Text, TextStyle, Platform } from 'react-native';
 import { colors } from '../styles/commonStyles';
 
 interface EmojiProps {
@@ -18,13 +18,27 @@ export default function Emoji({ emoji, size = 24, style }: EmojiProps) {
           textAlign: 'center',
           includeFontPadding: false,
           textAlignVertical: 'center',
-          fontFamily: 'System',
-          lineHeight: size + 4,
+          lineHeight: Platform.OS === 'android' ? size + 2 : size + 4,
+          // Use platform-specific font families for better emoji support
+          fontFamily: Platform.select({
+            ios: 'Apple Color Emoji',
+            android: 'Noto Color Emoji',
+            default: 'System',
+          }),
+          // Ensure proper color inheritance
           color: colors.text,
-          fontVariant: ['tabular-nums'],
+          // Remove font variants that might interfere with emoji rendering
+          fontVariant: undefined,
+          // Ensure proper text rendering
+          fontWeight: 'normal',
+          fontStyle: 'normal',
         },
         style,
       ]}
+      // Add accessibility label for screen readers
+      accessibilityLabel={`Emoji: ${emoji}`}
+      // Prevent text selection issues
+      selectable={false}
     >
       {emoji}
     </Text>
