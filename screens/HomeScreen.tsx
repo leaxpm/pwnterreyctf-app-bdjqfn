@@ -3,6 +3,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import React, { useState } from 'react';
 import FilterTabs from '../components/FilterTabs';
 import TopBar from '../components/TopBar';
+import Icon from '../components/Icon';
 import { useEvents } from '../hooks/useEvents';
 import { useAuth } from '../hooks/useAuth';
 import { colors, commonStyles } from '../styles/commonStyles';

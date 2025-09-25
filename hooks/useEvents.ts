@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Event } from '../types/Event';
 import { EventService } from '../services/eventService';
 import { UserService } from '../services/userService';
@@ -12,25 +12,7 @@ export const useEvents = (selectedEdition?: number) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    loadEvents();
-    
-    // Listen for auth changes to reload events with proper favorites
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        if (event === 'SIGNED_IN' || event === 'SIGNED_OUT') {
-          console.log('Auth state changed, reloading events');
-          await loadEvents();
-        }
-      }
-    );
-
-    return () => {
-      subscription.unsubscribe();
-    };
-  }, [selectedEdition]);
-
-  const loadEvents = async () => {
+  const loadEvents = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
@@ -76,7 +58,25 @@ export const useEvents = (selectedEdition?: number) => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [selectedEdition]);
+
+  useEffect(() => {
+    loadEvents();
+    
+    // Listen for auth changes to reload events with proper favorites
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        if (event === 'SIGNED_IN' || event === 'SIGNED_OUT') {
+          console.log('Auth state changed, reloading events');
+          await loadEvents();
+        }
+      }
+    );
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, [loadEvents]);
 
   const toggleFavorite = async (eventId: string) => {
     try {

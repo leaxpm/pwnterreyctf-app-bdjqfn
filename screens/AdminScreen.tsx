@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, TextInput, Alert, RefreshControl } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { colors, commonStyles, buttonStyles } from '../styles/commonStyles';
@@ -48,17 +48,7 @@ export default function AdminScreen() {
     avatar_url: '',
   });
 
-  useEffect(() => {
-    if (user?.role !== 'admin') {
-      Alert.alert('Acceso Denegado', 'No tienes permisos para acceder al panel de administración.');
-      router.back();
-      return;
-    }
-    
-    loadAdminData();
-  }, [user, selectedEdition]);
-
-  const loadAdminData = async () => {
+  const loadAdminData = useCallback(async () => {
     try {
       setLoading(true);
       console.log('Loading admin data for edition:', selectedEdition);
@@ -78,7 +68,17 @@ export default function AdminScreen() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [selectedEdition]);
+
+  useEffect(() => {
+    if (user?.role !== 'admin') {
+      Alert.alert('Acceso Denegado', 'No tienes permisos para acceder al panel de administración.');
+      router.back();
+      return;
+    }
+    
+    loadAdminData();
+  }, [user, loadAdminData]);
 
   const onRefresh = async () => {
     setRefreshing(true);
