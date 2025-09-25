@@ -5,6 +5,7 @@ import { colors, commonStyles } from '../styles/commonStyles';
 import Icon from './Icon';
 import SimpleBottomSheet from './BottomSheet';
 import { useAuth } from '../hooks/useAuth';
+import { router } from 'expo-router';
 
 interface TopBarProps {
   title: string;
@@ -28,6 +29,16 @@ export default function TopBar({
 
   const isAdmin = user?.role === 'admin';
 
+  const handleAdminPress = () => {
+    console.log('Admin button pressed, user role:', user?.role);
+    if (onAdminPress) {
+      onAdminPress();
+    } else {
+      console.log('Navigating to admin panel...');
+      router.push('/admin');
+    }
+  };
+
   return (
     <>
       <View style={styles.container}>
@@ -43,11 +54,11 @@ export default function TopBar({
             <Icon name="chevron-down" size={16} color={colors.text} />
           </TouchableOpacity>
 
-          {/* Admin Button - Only show if user is admin */}
-          {isAdmin && showAdminButton && (
+          {/* Admin Button - Show if user is admin */}
+          {isAdmin && (
             <TouchableOpacity 
               style={styles.adminButton}
-              onPress={onAdminPress}
+              onPress={handleAdminPress}
             >
               <Icon name="settings" size={20} color={colors.text} />
             </TouchableOpacity>

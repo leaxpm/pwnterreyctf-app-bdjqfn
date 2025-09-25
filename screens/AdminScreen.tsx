@@ -13,8 +13,8 @@ import { router } from 'expo-router';
 
 export default function AdminScreen() {
   const { user } = useAuth();
-  const { events, refreshEvents } = useEvents();
   const [selectedEdition, setSelectedEdition] = useState(2025);
+  const { events, refreshEvents } = useEvents(selectedEdition);
   const [activeTab, setActiveTab] = useState<'events' | 'attendance' | 'speakers'>('events');
   const [showEventForm, setShowEventForm] = useState(false);
   const [showSpeakerForm, setShowSpeakerForm] = useState(false);
@@ -59,6 +59,12 @@ export default function AdminScreen() {
         AdminService.getEventSpeakers(selectedEdition),
       ]);
 
+      console.log('Admin data loaded:', {
+        speakers: speakersData.length,
+        attendance: attendanceData.length,
+        eventSpeakers: eventSpeakersData.length
+      });
+
       setSpeakers(speakersData);
       setAttendance(attendanceData);
       setEventSpeakers(eventSpeakersData);
@@ -71,7 +77,17 @@ export default function AdminScreen() {
   }, [selectedEdition]);
 
   useEffect(() => {
-    if (user?.role !== 'admin') {
+    console.log('AdminScreen mounted, user:', user?.email, 'role:', user?.role);
+    
+    if (!user) {
+      console.log('No user found, redirecting...');
+      Alert.alert('Error', 'Debes iniciar sesión para acceder al panel de administración.');
+      router.back();
+      return;
+    }
+
+    if (user.role !== 'admin') {
+      console.log('User is not admin, redirecting...');
       Alert.alert('Acceso Denegado', 'No tienes permisos para acceder al panel de administración.');
       router.back();
       return;
@@ -304,7 +320,18 @@ export default function AdminScreen() {
 
   const filteredEvents = events.filter(event => event.edition === selectedEdition);
 
-  if (user?.role !== 'admin') {
+  // Show loading screen while checking user permissions
+  if (!user) {
+    return (
+      <SafeAreaView style={commonStyles.container}>
+        <View style={[commonStyles.container, { justifyContent: 'center', alignItems: 'center' }]}>
+          <Text style={commonStyles.text}>Verificando permisos...</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  if (user.role !== 'admin') {
     return (
       <SafeAreaView style={commonStyles.container}>
         <View style={[commonStyles.container, { justifyContent: 'center', alignItems: 'center' }]}>
@@ -315,6 +342,12 @@ export default function AdminScreen() {
           <Text style={[commonStyles.textSecondary, { marginTop: 8, textAlign: 'center' }]}>
             No tienes permisos para acceder al panel de administración
           </Text>
+          <TouchableOpacity
+            style={[buttonStyles.primary, { marginTop: 20 }]}
+            onPress={() => router.back()}
+          >
+            <Text style={buttonStyles.primaryText}>Volver</Text>
+          </TouchableOpacity>
         </View>
       </SafeAreaView>
     );

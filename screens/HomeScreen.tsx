@@ -1,20 +1,19 @@
 
-import { SafeAreaView } from 'react-native-safe-area-context';
 import React, { useState } from 'react';
+import { View, Text, ScrollView, RefreshControl } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { colors, commonStyles } from '../styles/commonStyles';
 import FilterTabs from '../components/FilterTabs';
 import TopBar from '../components/TopBar';
 import Icon from '../components/Icon';
 import { useEvents } from '../hooks/useEvents';
 import { useAuth } from '../hooks/useAuth';
-import { colors, commonStyles } from '../styles/commonStyles';
-import { View, Text, ScrollView, RefreshControl } from 'react-native';
 import EventCard from '../components/EventCard';
-import { router } from 'expo-router';
 
 export default function HomeScreen() {
   const [selectedEdition, setSelectedEdition] = useState(2025);
   const { events, toggleFavorite, loading, error, refreshEvents } = useEvents(selectedEdition);
-  const { userStats, updateStats, user } = useAuth();
+  const { userStats, updateStats } = useAuth();
   const [activeFilter, setActiveFilter] = useState('Todos');
   const [refreshing, setRefreshing] = useState(false);
 
@@ -71,10 +70,6 @@ export default function HomeScreen() {
     );
   }
 
-  const handleAdminPress = () => {
-    router.push('/admin');
-  };
-
   return (
     <SafeAreaView style={commonStyles.container}>
       <TopBar
@@ -82,7 +77,6 @@ export default function HomeScreen() {
         selectedEdition={selectedEdition}
         onEditionChange={setSelectedEdition}
         showAdminButton={true}
-        onAdminPress={handleAdminPress}
       />
 
       {error && (
