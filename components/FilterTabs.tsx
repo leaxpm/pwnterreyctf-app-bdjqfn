@@ -6,28 +6,40 @@ import { colors, commonStyles, buttonStyles } from '../styles/commonStyles';
 interface FilterTabsProps {
   activeFilter: string;
   onFilterChange: (filter: string) => void;
-  filters: { key: string; label: string }[];
+  filters: string[] | { key: string; label: string }[];
 }
 
 const FilterTabs: React.FC<FilterTabsProps> = ({ activeFilter, onFilterChange, filters }) => {
+  // Normalize filters to object format
+  const normalizedFilters = filters.map(filter => 
+    typeof filter === 'string' 
+      ? { key: filter, label: filter }
+      : filter
+  );
+
   return (
-    <View style={commonStyles.tabContainer}>
+    <View style={{ paddingVertical: 16 }}>
       <ScrollView 
         horizontal 
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={{ 
           paddingHorizontal: 16,
           alignItems: 'center',
+          gap: 8,
         }}
       >
-        {filters.map((filter) => (
+        {normalizedFilters.map((filter) => (
           <TouchableOpacity
             key={filter.key}
             style={[
-              buttonStyles.tab,
-              activeFilter === filter.key 
-                ? buttonStyles.tabActive 
-                : buttonStyles.tabInactive
+              {
+                paddingHorizontal: 16,
+                paddingVertical: 8,
+                borderRadius: 20,
+                backgroundColor: activeFilter === filter.key ? colors.primary : colors.surface,
+                borderWidth: 1,
+                borderColor: activeFilter === filter.key ? colors.primary : colors.border,
+              }
             ]}
             onPress={() => {
               console.log('Filter changed to:', filter.key);

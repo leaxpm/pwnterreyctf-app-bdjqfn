@@ -50,12 +50,18 @@ export const useAuth = () => {
     try {
       setLoading(true);
       setError(null);
+      console.log('useAuth - Checking user...');
       
       const currentUser = await UserService.getCurrentUser();
+      console.log('useAuth - Current user result:', currentUser);
+      
       if (currentUser) {
         setUser(currentUser);
         const stats = await UserService.getUserStats(currentUser.id);
         setUserStats(stats);
+        console.log('useAuth - User loaded successfully:', currentUser.email);
+      } else {
+        console.log('useAuth - No user found');
       }
     } catch (err) {
       console.error('Error checking user:', err);

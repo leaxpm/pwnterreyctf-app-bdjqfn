@@ -22,6 +22,8 @@ export default function AuthWrapper({ children }: AuthWrapperProps) {
   console.log('AuthWrapper - Current pathname:', pathname);
   console.log('AuthWrapper - Is public route:', isPublicRoute);
   console.log('AuthWrapper - User exists:', !!user);
+  console.log('AuthWrapper - Loading:', loading);
+  console.log('AuthWrapper - User object:', user);
 
   // Always allow access to public routes regardless of auth state
   if (isPublicRoute) {

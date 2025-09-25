@@ -17,7 +17,20 @@ export default function HomeScreen() {
   const [activeFilter, setActiveFilter] = useState('Todos');
   const [refreshing, setRefreshing] = useState(false);
 
-  const filters = ['Todos', 'CTF', 'Taller', 'Charla'];
+  console.log('HomeScreen - Rendered with:', {
+    selectedEdition,
+    eventsCount: events.length,
+    loading,
+    error,
+    activeFilter
+  });
+
+  const filters = [
+    { key: 'Todos', label: 'Todos' },
+    { key: 'CTF', label: 'CTF' },
+    { key: 'Taller', label: 'Taller' },
+    { key: 'Charla', label: 'Charla' }
+  ];
 
   const getFilteredEvents = () => {
     if (activeFilter === 'Todos') {

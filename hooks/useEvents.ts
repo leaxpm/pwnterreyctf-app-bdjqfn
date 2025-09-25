@@ -12,13 +12,14 @@ export const useEvents = (selectedEdition?: number) => {
     try {
       setLoading(true);
       setError(null);
-      console.log('Loading events for edition:', selectedEdition);
+      console.log('useEvents - Loading events for edition:', selectedEdition);
       
       const data = await EventService.getEvents(selectedEdition);
-      console.log('Events loaded:', data.length);
+      console.log('useEvents - Events loaded:', data.length);
+      console.log('useEvents - First event:', data[0]);
       setEvents(data);
     } catch (err) {
-      console.error('Error loading events:', err);
+      console.error('useEvents - Error loading events:', err);
       setError('Error cargando eventos');
     } finally {
       setLoading(false);
@@ -52,11 +53,21 @@ export const useEvents = (selectedEdition?: number) => {
     await loadEvents();
   }, [loadEvents]);
 
+  const getEventsByType = useCallback((type: Event['type']) => {
+    return events.filter(event => event.type === type);
+  }, [events]);
+
+  const getFavoriteEvents = useCallback(() => {
+    return events.filter(event => event.isFavorite);
+  }, [events]);
+
   return {
     events,
     loading,
     error,
     toggleFavorite,
     refreshEvents,
+    getEventsByType,
+    getFavoriteEvents,
   };
 };

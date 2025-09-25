@@ -3,9 +3,9 @@ import { supabase } from '../config/supabase';
 import { Event } from '../types/Event';
 
 export class EventService {
-  static async getAllEvents(edition?: number): Promise<Event[]> {
+  static async getEvents(edition?: number): Promise<Event[]> {
     try {
-      console.log('Fetching events from Supabase for edition:', edition);
+      console.log('EventService - Fetching events from Supabase for edition:', edition);
       
       let query = supabase
         .from('events')
@@ -19,15 +19,40 @@ export class EventService {
       const { data, error } = await query;
 
       if (error) {
-        console.error('Error fetching events:', error);
+        console.error('EventService - Error fetching events:', error);
         throw error;
       }
 
-      console.log('Events fetched successfully:', data?.length);
+      console.log('EventService - Events fetched successfully:', data?.length);
       
-      return data?.map(this.mapSupabaseEventToEvent) || [];
+      if (!data) {
+        console.log('EventService - No data returned');
+        return [];
+      }
+
+      // Get current user to check favorites
+      const { data: { user } } = await supabase.auth.getUser();
+      let userFavorites: string[] = [];
+
+      if (user) {
+        console.log('EventService - Getting favorites for user:', user.id);
+        const { data: favoritesData } = await supabase
+          .from('user_favorites')
+          .select('event_id')
+          .eq('user_id', user.id);
+        
+        userFavorites = favoritesData?.map(fav => fav.event_id) || [];
+        console.log('EventService - User favorites:', userFavorites.length);
+      } else {
+        console.log('EventService - No user authenticated, no favorites');
+      }
+
+      const mappedEvents = data.map(event => this.mapSupabaseEventToEvent(event, userFavorites));
+      console.log('EventService - Mapped events:', mappedEvents.length);
+      
+      return mappedEvents;
     } catch (error) {
-      console.error('Error in getAllEvents:', error);
+      console.error('EventService - Error in getEvents:', error);
       return [];
     }
   }
@@ -49,7 +74,7 @@ export class EventService {
 
       console.log(`Events of type ${type} fetched:`, data?.length);
       
-      return data?.map(this.mapSupabaseEventToEvent) || [];
+      return data?.map(event => this.mapSupabaseEventToEvent(event, [])) || [];
     } catch (error) {
       console.error('Error in getEventsByType:', error);
       return [];
@@ -82,7 +107,7 @@ export class EventService {
 
       console.log('Event created successfully:', data.id);
       
-      return this.mapSupabaseEventToEvent(data);
+      return this.mapSupabaseEventToEvent(data, []);
     } catch (error) {
       console.error('Error in createEvent:', error);
       return null;
@@ -117,7 +142,7 @@ export class EventService {
 
       console.log('Event updated successfully');
       
-      return this.mapSupabaseEventToEvent(data);
+      return this.mapSupabaseEventToEvent(data, []);
     } catch (error) {
       console.error('Error in updateEvent:', error);
       return null;
@@ -146,7 +171,70 @@ export class EventService {
     }
   }
 
-  private static mapSupabaseEventToEvent(supabaseEvent: any): Event {
+  static async toggleFavorite(eventId: string): Promise<boolean> {
+    try {
+      console.log('Toggling favorite for event:', eventId);
+      
+      // Get current user
+      const { data: { user }, error: userError } = await supabase.auth.getUser();
+      
+      if (userError || !user) {
+        console.error('No authenticated user found');
+        return false;
+      }
+
+      // Check if already favorited
+      const { data: existing, error: checkError } = await supabase
+        .from('user_favorites')
+        .select('id')
+        .eq('user_id', user.id)
+        .eq('event_id', eventId)
+        .single();
+
+      if (checkError && checkError.code !== 'PGRST116') {
+        console.error('Error checking favorite:', checkError);
+        return false;
+      }
+
+      if (existing) {
+        // Remove favorite
+        const { error: deleteError } = await supabase
+          .from('user_favorites')
+          .delete()
+          .eq('user_id', user.id)
+          .eq('event_id', eventId);
+
+        if (deleteError) {
+          console.error('Error removing favorite:', deleteError);
+          return false;
+        }
+
+        console.log('Favorite removed successfully');
+      } else {
+        // Add favorite
+        const { error: insertError } = await supabase
+          .from('user_favorites')
+          .insert({
+            user_id: user.id,
+            event_id: eventId,
+          });
+
+        if (insertError) {
+          console.error('Error adding favorite:', insertError);
+          return false;
+        }
+
+        console.log('Favorite added successfully');
+      }
+
+      return true;
+    } catch (error) {
+      console.error('Error in toggleFavorite:', error);
+      return false;
+    }
+  }
+
+  private static mapSupabaseEventToEvent(supabaseEvent: any, userFavorites: string[] = []): Event {
     return {
       id: supabaseEvent.id,
       title: supabaseEvent.title,
@@ -158,7 +246,7 @@ export class EventService {
       description: supabaseEvent.description,
       date: supabaseEvent.date,
       edition: supabaseEvent.edition || 2025,
-      isFavorite: false, // This will be set by the user service
+      isFavorite: userFavorites.includes(supabaseEvent.id),
     };
   }
 }

@@ -7,6 +7,7 @@ export const colors = {
   secondary: '#EC4899',
   accent: '#6366F1',
   background: '#FFFFFF',
+  backgroundAlt: '#F1F5F9',
   surface: '#F8FAFC',
   text: '#1E293B',
   textSecondary: '#64748B',
@@ -106,6 +107,9 @@ export const commonStyles = StyleSheet.create({
     flex: 1,
     paddingHorizontal: 20,
   },
+  tabContainer: {
+    paddingVertical: 16,
+  },
 });
 
 export const buttonStyles = StyleSheet.create({
@@ -163,5 +167,55 @@ export const buttonStyles = StyleSheet.create({
   smallText: {
     fontSize: 14,
     fontWeight: '500',
+  },
+  tab: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 20,
+    marginRight: 8,
+  },
+  tabActive: {
+    backgroundColor: colors.primary,
+    borderWidth: 1,
+    borderColor: colors.primary,
+  },
+  tabInactive: {
+    backgroundColor: colors.surface,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  tag: {
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 12,
+    alignSelf: 'flex-start',
+    marginBottom: 8,
+  },
+  ctfTag: {
+    backgroundColor: colors.ctfTag + '20',
+  },
+  tallerTag: {
+    backgroundColor: colors.tallerTag + '20',
+  },
+  charlaTag: {
+    backgroundColor: colors.charlaTag + '20',
+  },
+  tagText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: colors.text,
+  },
+  favoriteButton: {
+    padding: 4,
+  },
+  registerButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: colors.border,
+    backgroundColor: colors.surface,
   },
 });

@@ -6,14 +6,21 @@ import { UserStats } from '../types/Badge';
 export class UserService {
   static async getCurrentUser(): Promise<User | null> {
     try {
-      console.log('Getting current user...');
+      console.log('UserService - Getting current user...');
       
       const { data: { user }, error } = await supabase.auth.getUser();
       
-      if (error || !user) {
-        console.log('No authenticated user found');
+      if (error) {
+        console.error('UserService - Auth error:', error);
         return null;
       }
+      
+      if (!user) {
+        console.log('UserService - No authenticated user found');
+        return null;
+      }
+
+      console.log('UserService - Auth user found:', user.id, user.email);
 
       const { data: userData, error: userError } = await supabase
         .from('users')
@@ -22,11 +29,11 @@ export class UserService {
         .single();
 
       if (userError) {
-        console.error('Error fetching user data:', userError);
+        console.error('UserService - Error fetching user data:', userError);
         return null;
       }
 
-      console.log('User data fetched successfully');
+      console.log('UserService - User data fetched successfully:', userData);
       
       const favoriteEvents = await this.getUserFavorites(user.id);
       
@@ -39,7 +46,7 @@ export class UserService {
         favoriteEvents,
       };
     } catch (error) {
-      console.error('Error in getCurrentUser:', error);
+      console.error('UserService - Error in getCurrentUser:', error);
       return null;
     }
   }
