@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router, usePathname } from 'expo-router';
@@ -7,13 +7,16 @@ import { useAuth } from '../hooks/useAuth';
 import { colors, commonStyles, buttonStyles } from '../styles/commonStyles';
 import Icon from './Icon';
 
+// Fixed syntax error - AuthWrapper component
+
 interface AuthWrapperProps {
   children: React.ReactNode;
 }
 
 export default function AuthWrapper({ children }: AuthWrapperProps) {
-  const { user, loading } = useAuth();
+  const { user, loading, refreshUser } = useAuth();
   const pathname = usePathname();
+  const [loadingTimeout, setLoadingTimeout] = useState(false);
 
   // Allow access to login and email verification screens without authentication
   const publicRoutes = ['/login', '/email-verification'];
@@ -25,18 +28,64 @@ export default function AuthWrapper({ children }: AuthWrapperProps) {
   console.log('AuthWrapper - Loading:', loading);
   console.log('AuthWrapper - User object:', user);
 
+  // Set a timeout for loading state to prevent infinite loading
+  useEffect(() => {
+    if (loading) {
+      const timeout = setTimeout(() => {
+        console.log('AuthWrapper - Loading timeout reached, showing error state');
+        setLoadingTimeout(true);
+      }, 10000); // 10 seconds timeout
+
+      return () => clearTimeout(timeout);
+    } else {
+      setLoadingTimeout(false);
+    }
+  }, [loading]);
+
   // Always allow access to public routes regardless of auth state
   if (isPublicRoute) {
     console.log('AuthWrapper - Allowing access to public route');
     return <>{children}</>;
   }
 
-  if (loading) {
+  if (loading && !loadingTimeout) {
     return (
       <SafeAreaView style={commonStyles.container}>
         <View style={[commonStyles.container, { justifyContent: 'center', alignItems: 'center' }]}>
           <Icon name="reload" size={48} color={colors.primary} />
           <Text style={[commonStyles.text, { marginTop: 16 }]}>Cargando...</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  // If loading timed out, show error state with retry option
+  if (loadingTimeout) {
+    return (
+      <SafeAreaView style={commonStyles.container}>
+        <View style={[commonStyles.container, { justifyContent: 'center', alignItems: 'center', padding: 20 }]}>
+          <Icon name="warning" size={48} color={colors.error} />
+          <Text style={[commonStyles.title, { textAlign: 'center', marginTop: 16, marginBottom: 8 }]}>
+            Error de Conexión
+          </Text>
+          <Text style={[commonStyles.textSecondary, { textAlign: 'center', marginBottom: 32 }]}>
+            No se pudo cargar la aplicación. Verifica tu conexión a internet e intenta nuevamente.
+          </Text>
+          <TouchableOpacity
+            style={[buttonStyles.primary, { marginBottom: 16 }]}
+            onPress={() => {
+              setLoadingTimeout(false);
+              refreshUser();
+            }}
+          >
+            <Text style={buttonStyles.primaryText}>Reintentar</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={buttonStyles.secondary}
+            onPress={() => router.push('/login')}
+          >
+            <Text style={buttonStyles.secondaryText}>Ir al Login</Text>
+          </TouchableOpacity>
         </View>
       </SafeAreaView>
     );
@@ -99,8 +148,6 @@ export default function AuthWrapper({ children }: AuthWrapperProps) {
           >
             <Text style={[buttonStyles.primaryText, { fontSize: 18 }]}>Comenzar</Text>
           </TouchableOpacity>
-
-
         </View>
       </SafeAreaView>
     );

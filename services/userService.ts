@@ -30,6 +30,18 @@ export class UserService {
 
       if (userError) {
         console.error('UserService - Error fetching user data:', userError);
+        
+        // If user doesn't exist in users table, this might be expected for new users
+        if (userError.code === 'PGRST116') {
+          console.log('UserService - User profile not found in database, this might be a new user');
+          return null;
+        }
+        
+        return null;
+      }
+
+      if (!userData) {
+        console.log('UserService - No user data found in database');
         return null;
       }
 
@@ -260,7 +272,7 @@ export class UserService {
         return [];
       }
 
-      console.log('User favorites fetched:', data?.length);
+      console.log('User favorites fetched:', data?.length || 0);
       
       return data?.map(fav => fav.event_id) || [];
     } catch (error) {

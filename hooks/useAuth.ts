@@ -18,30 +18,57 @@ export const useAuth = () => {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    // Check initial session
-    checkUser();
+    let isMounted = true;
+
+    const initializeAuth = async () => {
+      try {
+        console.log('useAuth - Initializing auth...');
+        await checkUser();
+      } catch (err) {
+        console.error('useAuth - Error during initialization:', err);
+        if (isMounted) {
+          setError('Error initializing authentication');
+          setLoading(false);
+        }
+      }
+    };
+
+    // Initialize auth
+    initializeAuth();
 
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         console.log('useAuth - Auth state changed:', event);
         
-        if (event === 'SIGNED_IN' && session?.user) {
-          await loadUserData(session.user.id);
-        } else if (event === 'SIGNED_OUT') {
-          setUser(null);
-          setUserStats({
-            eventsAttended: 0,
-            ctfsCompleted: 0,
-            workshopsTaken: 0,
-            pointsEarned: 0,
-            profileComplete: false,
-          });
+        if (!isMounted) return;
+
+        try {
+          if (event === 'SIGNED_IN' && session?.user) {
+            await loadUserData(session.user.id);
+          } else if (event === 'SIGNED_OUT') {
+            setUser(null);
+            setUserStats({
+              eventsAttended: 0,
+              ctfsCompleted: 0,
+              workshopsTaken: 0,
+              pointsEarned: 0,
+              profileComplete: false,
+            });
+            setLoading(false);
+          }
+        } catch (err) {
+          console.error('useAuth - Error in auth state change:', err);
+          if (isMounted) {
+            setError('Error handling authentication change');
+            setLoading(false);
+          }
         }
       }
     );
 
     return () => {
+      isMounted = false;
       subscription.unsubscribe();
     };
   }, []);
@@ -66,6 +93,7 @@ export const useAuth = () => {
         });
       } else {
         console.log('useAuth - No user found');
+        setUser(null);
       }
     } catch (err) {
       console.error('useAuth - Error checking user:', err);
@@ -78,6 +106,8 @@ export const useAuth = () => {
   const loadUserData = async (userId: string) => {
     try {
       console.log('useAuth - Loading user data for:', userId);
+      setLoading(true);
+      
       // Add a small delay to ensure the trigger has time to create the profile
       await new Promise(resolve => setTimeout(resolve, 1000));
       
@@ -95,6 +125,8 @@ export const useAuth = () => {
     } catch (err) {
       console.error('useAuth - Error loading user data:', err);
       setError('Error loading user data');
+    } finally {
+      setLoading(false);
     }
   };
 
