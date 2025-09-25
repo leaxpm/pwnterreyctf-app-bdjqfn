@@ -6,6 +6,7 @@ import { router, usePathname } from 'expo-router';
 import { useAuth } from '../hooks/useAuth';
 import { colors, commonStyles, buttonStyles } from '../styles/commonStyles';
 import Icon from './Icon';
+import Emoji from './Emoji';
 
 // Fixed syntax error - AuthWrapper component
 
@@ -174,14 +175,7 @@ function FeatureItem({ emoji, title, description }: FeatureItemProps) {
         alignItems: 'center',
         marginRight: 16,
       }}>
-        <Text style={{ 
-          fontSize: 24,
-          textAlign: 'center',
-          includeFontPadding: false,
-          textAlignVertical: 'center'
-        }}>
-          {emoji}
-        </Text>
+        <Emoji emoji={emoji} size={24} />
       </View>
       <View style={{ flex: 1 }}>
         <Text style={[commonStyles.subtitle, { fontSize: 16, marginBottom: 4 }]}>
