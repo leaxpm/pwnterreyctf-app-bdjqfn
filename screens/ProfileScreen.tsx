@@ -2,13 +2,14 @@
 import { SafeAreaView } from 'react-native-safe-area-context';
 import SimpleBottomSheet from '../components/BottomSheet';
 import Icon from '../components/Icon';
-import { View, Text, ScrollView, TouchableOpacity, TextInput, Alert } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, TextInput, Alert, Modal } from 'react-native';
 import { colors, commonStyles, buttonStyles } from '../styles/commonStyles';
 import { useBadges } from '../hooks/useBadges';
 import { useAuth } from '../hooks/useAuth';
 import BadgeCard from '../components/BadgeCard';
 import { UserStats } from '../types/Badge';
 import React, { useState, useMemo, useCallback } from 'react';
+import QRCode from 'react-native-qrcode-svg';
 
 export default function ProfileScreen() {
   const { user, userStats, updateProfile, updateStats, signIn, signUp, signOut, loading: authLoading } = useAuth();
@@ -16,6 +17,7 @@ export default function ProfileScreen() {
   
   const [isEditing, setIsEditing] = useState(false);
   const [showBottomSheet, setShowBottomSheet] = useState(false);
+  const [showQRModal, setShowQRModal] = useState(false);
   const [editedName, setEditedName] = useState(user?.name || '');
   const [editedEmail, setEditedEmail] = useState(user?.email || '');
   
@@ -267,19 +269,30 @@ export default function ProfileScreen() {
               <Text style={[commonStyles.textSecondary, { marginBottom: 16 }]}>
                 {user.email}
               </Text>
-              <TouchableOpacity
-                style={buttonStyles.secondary}
-                onPress={() => {
-                  setEditedName(user.name || '');
-                  setEditedEmail(user.email || '');
-                  setIsEditing(true);
-                }}
-              >
-                <Icon name="edit-2" size={16} color={colors.text} />
-                <Text style={[buttonStyles.secondaryText, { marginLeft: 8 }]}>
-                  Editar Perfil
-                </Text>
-              </TouchableOpacity>
+              <View style={{ flexDirection: 'row', gap: 12, width: '100%' }}>
+                <TouchableOpacity
+                  style={[buttonStyles.secondary, { flex: 1 }]}
+                  onPress={() => {
+                    setEditedName(user.name || '');
+                    setEditedEmail(user.email || '');
+                    setIsEditing(true);
+                  }}
+                >
+                  <Icon name="edit-2" size={16} color={colors.text} />
+                  <Text style={[buttonStyles.secondaryText, { marginLeft: 8 }]}>
+                    Editar
+                  </Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[buttonStyles.primary, { flex: 1 }]}
+                  onPress={() => setShowQRModal(true)}
+                >
+                  <Icon name="qr-code" size={16} color={colors.background} />
+                  <Text style={[buttonStyles.primaryText, { marginLeft: 8 }]}>
+                    Mi QR
+                  </Text>
+                </TouchableOpacity>
+              </View>
             </View>
           )}
         </View>
@@ -378,6 +391,84 @@ export default function ProfileScreen() {
           </View>
         )}
       </ScrollView>
+
+      {/* QR Code Modal */}
+      <Modal
+        visible={showQRModal}
+        animationType="slide"
+        presentationStyle="pageSheet"
+        onRequestClose={() => setShowQRModal(false)}
+      >
+        <SafeAreaView style={[commonStyles.container, { backgroundColor: colors.background }]}>
+          <View style={commonStyles.header}>
+            <TouchableOpacity onPress={() => setShowQRModal(false)}>
+              <Icon name="x" size={24} color={colors.text} />
+            </TouchableOpacity>
+            <Text style={commonStyles.title}>Mi QR de Asistencia</Text>
+            <View style={{ width: 24 }} />
+          </View>
+
+          <View style={[commonStyles.container, { justifyContent: 'center', alignItems: 'center', padding: 20 }]}>
+            <View style={{
+              backgroundColor: colors.surface,
+              borderRadius: 20,
+              padding: 30,
+              alignItems: 'center',
+              shadowColor: colors.text,
+              shadowOffset: { width: 0, height: 4 },
+              shadowOpacity: 0.1,
+              shadowRadius: 12,
+              elevation: 8,
+            }}>
+              <Text style={[commonStyles.title, { marginBottom: 8, textAlign: 'center' }]}>
+                {user.name || 'Usuario'}
+              </Text>
+              <Text style={[commonStyles.textSecondary, { marginBottom: 24, textAlign: 'center' }]}>
+                {user.email}
+              </Text>
+              
+              <View style={{
+                backgroundColor: colors.background,
+                padding: 20,
+                borderRadius: 16,
+                marginBottom: 24,
+              }}>
+                <QRCode
+                  value={user.email}
+                  size={200}
+                  color={colors.text}
+                  backgroundColor={colors.background}
+                />
+              </View>
+
+              <View style={{
+                backgroundColor: colors.primary + '20',
+                borderRadius: 12,
+                padding: 16,
+                marginBottom: 20,
+                borderLeftWidth: 4,
+                borderLeftColor: colors.primary,
+              }}>
+                <Text style={[commonStyles.text, { fontWeight: '600', marginBottom: 8 }]}>
+                  Instrucciones:
+                </Text>
+                <Text style={[commonStyles.textSecondary, { lineHeight: 20 }]}>
+                  • Muestra este código QR a los administradores{'\n'}
+                  • Será escaneado para registrar tu asistencia{'\n'}
+                  • Mantén la pantalla encendida durante el escaneo
+                </Text>
+              </View>
+
+              <TouchableOpacity
+                style={[buttonStyles.secondary, { width: '100%' }]}
+                onPress={() => setShowQRModal(false)}
+              >
+                <Text style={buttonStyles.secondaryText}>Cerrar</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </SafeAreaView>
+      </Modal>
     </SafeAreaView>
   );
 }

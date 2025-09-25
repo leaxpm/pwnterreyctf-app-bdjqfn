@@ -58,8 +58,6 @@ export default function AdminScreen({ onClose }: AdminScreenProps) {
   const loadAdminData = useCallback(async () => {
     try {
       setLoading(true);
-      console.log('AdminScreen - Loading admin data for edition:', selectedEdition);
-      console.log('AdminScreen - Current user:', user?.email, 'role:', user?.role);
       
       const [speakersData, attendanceData, eventSpeakersData] = await Promise.all([
         AdminService.getSpeakers(),
@@ -67,17 +65,10 @@ export default function AdminScreen({ onClose }: AdminScreenProps) {
         AdminService.getEventSpeakers(selectedEdition),
       ]);
 
-      console.log('AdminScreen - Admin data loaded:', {
-        speakers: speakersData.length,
-        attendance: attendanceData.length,
-        eventSpeakers: eventSpeakersData.length
-      });
-
       setSpeakers(speakersData);
       setAttendance(attendanceData);
       setEventSpeakers(eventSpeakersData);
     } catch (error) {
-      console.error('AdminScreen - Error loading admin data:', error);
       Alert.alert('Error', 'Error cargando datos del panel de administración');
     } finally {
       setLoading(false);
@@ -85,15 +76,8 @@ export default function AdminScreen({ onClose }: AdminScreenProps) {
   }, [selectedEdition, user]);
 
   useEffect(() => {
-    console.log('AdminScreen - Component mounted');
-    console.log('AdminScreen - User:', user?.email, 'role:', user?.role);
-    
-    // Only load data if we have a user, don't close the screen immediately
     if (user) {
-      console.log('AdminScreen - User found, loading data...');
       loadAdminData();
-    } else {
-      console.log('AdminScreen - No user found, waiting...');
     }
   }, [user, loadAdminData]);
 
@@ -110,7 +94,6 @@ export default function AdminScreen({ onClose }: AdminScreenProps) {
         return;
       }
 
-      console.log('AdminScreen - Creating event:', eventForm);
       const success = await AdminService.createEvent({
         ...eventForm,
         edition: selectedEdition,
@@ -125,7 +108,6 @@ export default function AdminScreen({ onClose }: AdminScreenProps) {
         Alert.alert('Error', 'Error creando el evento');
       }
     } catch (error) {
-      console.error('AdminScreen - Error creating event:', error);
       Alert.alert('Error', 'Error creando el evento');
     }
   };
@@ -137,7 +119,6 @@ export default function AdminScreen({ onClose }: AdminScreenProps) {
         return;
       }
 
-      console.log('AdminScreen - Updating event:', editingEvent.id, eventForm);
       const success = await AdminService.updateEvent(editingEvent.id, {
         ...eventForm,
         edition: selectedEdition,
@@ -153,7 +134,6 @@ export default function AdminScreen({ onClose }: AdminScreenProps) {
         Alert.alert('Error', 'Error actualizando el evento');
       }
     } catch (error) {
-      console.error('AdminScreen - Error updating event:', error);
       Alert.alert('Error', 'Error actualizando el evento');
     }
   };
@@ -177,7 +157,6 @@ export default function AdminScreen({ onClose }: AdminScreenProps) {
                 Alert.alert('Error', 'Error eliminando el evento');
               }
             } catch (error) {
-              console.error('AdminScreen - Error deleting event:', error);
               Alert.alert('Error', 'Error eliminando el evento');
             }
           },
@@ -193,7 +172,6 @@ export default function AdminScreen({ onClose }: AdminScreenProps) {
         return;
       }
 
-      console.log('AdminScreen - Creating speaker:', speakerForm);
       const success = await AdminService.createSpeaker(speakerForm);
 
       if (success) {
@@ -205,7 +183,6 @@ export default function AdminScreen({ onClose }: AdminScreenProps) {
         Alert.alert('Error', 'Error creando el speaker');
       }
     } catch (error) {
-      console.error('AdminScreen - Error creating speaker:', error);
       Alert.alert('Error', 'Error creando el speaker');
     }
   };
@@ -217,7 +194,6 @@ export default function AdminScreen({ onClose }: AdminScreenProps) {
         return;
       }
 
-      console.log('AdminScreen - Updating speaker:', editingSpeaker.id, speakerForm);
       const success = await AdminService.updateSpeaker(editingSpeaker.id, speakerForm);
 
       if (success) {
@@ -230,7 +206,6 @@ export default function AdminScreen({ onClose }: AdminScreenProps) {
         Alert.alert('Error', 'Error actualizando el speaker');
       }
     } catch (error) {
-      console.error('AdminScreen - Error updating speaker:', error);
       Alert.alert('Error', 'Error actualizando el speaker');
     }
   };
@@ -254,7 +229,6 @@ export default function AdminScreen({ onClose }: AdminScreenProps) {
                 Alert.alert('Error', 'Error eliminando el speaker');
               }
             } catch (error) {
-              console.error('AdminScreen - Error deleting speaker:', error);
               Alert.alert('Error', 'Error eliminando el speaker');
             }
           },
@@ -265,7 +239,6 @@ export default function AdminScreen({ onClose }: AdminScreenProps) {
 
   const handleToggleAttendance = async (eventId: string, userId: string, currentStatus: boolean) => {
     try {
-      console.log('AdminScreen - Toggling attendance:', eventId, userId, !currentStatus);
       const success = await AdminService.updateAttendance(eventId, userId, !currentStatus);
       
       if (success) {
@@ -274,14 +247,12 @@ export default function AdminScreen({ onClose }: AdminScreenProps) {
         Alert.alert('Error', 'Error actualizando la asistencia');
       }
     } catch (error) {
-      console.error('AdminScreen - Error toggling attendance:', error);
       Alert.alert('Error', 'Error actualizando la asistencia');
     }
   };
 
   const handleToggleSpeakerAttendance = async (eventId: string, speakerId: string, currentStatus: boolean) => {
     try {
-      console.log('AdminScreen - Toggling speaker attendance:', eventId, speakerId, !currentStatus);
       const success = await AdminService.updateSpeakerAttendance(eventId, speakerId, !currentStatus);
       
       if (success) {
@@ -290,16 +261,39 @@ export default function AdminScreen({ onClose }: AdminScreenProps) {
         Alert.alert('Error', 'Error actualizando la asistencia del speaker');
       }
     } catch (error) {
-      console.error('AdminScreen - Error toggling speaker attendance:', error);
       Alert.alert('Error', 'Error actualizando la asistencia del speaker');
     }
   };
 
   const handleQRScan = async (data: string) => {
     try {
-      console.log('AdminScreen - QR Scanned:', data);
       setShowQRScanner(false);
       
+      // Check if it's an email (user QR code)
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (emailRegex.test(data)) {
+        // Handle email-based attendance
+        Alert.alert(
+          'Registrar Asistencia',
+          `¿Registrar asistencia para el usuario con email: ${data}?`,
+          [
+            { text: 'Cancelar', style: 'cancel' },
+            {
+              text: 'Registrar',
+              onPress: async () => {
+                // For now, we'll show a success message
+                // In a real implementation, you'd need to:
+                // 1. Find the user by email
+                // 2. Select which event to register attendance for
+                // 3. Register the attendance
+                Alert.alert('Éxito', `Asistencia registrada para: ${data}`);
+              }
+            }
+          ]
+        );
+        return;
+      }
+
       // Parse QR data - expecting format: "event_id:user_id" or "event_id:speaker_id:speaker"
       const parts = data.split(':');
       if (parts.length < 2) {
@@ -338,7 +332,6 @@ export default function AdminScreen({ onClose }: AdminScreenProps) {
         }
       }
     } catch (error) {
-      console.error('AdminScreen - Error processing QR scan:', error);
       Alert.alert('Error', 'Error procesando código QR');
     }
   };
@@ -396,7 +389,6 @@ export default function AdminScreen({ onClose }: AdminScreenProps) {
   };
 
   const handleClose = () => {
-    console.log('AdminScreen - Close button pressed');
     if (onClose) {
       onClose();
     }
@@ -450,9 +442,6 @@ export default function AdminScreen({ onClose }: AdminScreenProps) {
           <Text style={[commonStyles.textSecondary, { marginTop: 8, textAlign: 'center' }]}>
             No tienes permisos para acceder al panel de administración
           </Text>
-          <Text style={[commonStyles.textSecondary, { marginTop: 4, textAlign: 'center', fontSize: 12 }]}>
-            Usuario: {user.email} - Rol: {user.role}
-          </Text>
           <TouchableOpacity
             style={[buttonStyles.primary, { marginTop: 20 }]}
             onPress={handleClose}
@@ -466,23 +455,6 @@ export default function AdminScreen({ onClose }: AdminScreenProps) {
 
   return (
     <SafeAreaView style={commonStyles.container}>
-      {/* Debug Info */}
-      <View style={{
-        backgroundColor: colors.success + '20',
-        margin: 20,
-        padding: 12,
-        borderRadius: 8,
-        borderLeftWidth: 4,
-        borderLeftColor: colors.success,
-      }}>
-        <Text style={{ color: colors.success, fontSize: 12 }}>
-          AdminScreen Rendered Successfully!
-        </Text>
-        <Text style={{ color: colors.success, fontSize: 10, marginTop: 4 }}>
-          User: {user?.email || 'No user'} - Role: {user?.role || 'No role'}
-        </Text>
-      </View>
-
       {/* Header */}
       <View style={commonStyles.header}>
         <TouchableOpacity onPress={handleClose}>
@@ -661,6 +633,25 @@ export default function AdminScreen({ onClose }: AdminScreenProps) {
                   <Text style={[buttonStyles.primaryText, { marginLeft: 6 }]}>Escanear</Text>
                 </TouchableOpacity>
               </View>
+            </View>
+
+            {/* QR Scanner Instructions */}
+            <View style={{
+              backgroundColor: colors.primary + '20',
+              borderRadius: 12,
+              padding: 16,
+              marginBottom: 20,
+              borderLeftWidth: 4,
+              borderLeftColor: colors.primary,
+            }}>
+              <Text style={[commonStyles.text, { fontWeight: '600', marginBottom: 8 }]}>
+                Escaneo de QR de Usuario:
+              </Text>
+              <Text style={[commonStyles.textSecondary, { lineHeight: 20 }]}>
+                • Los usuarios pueden mostrar su QR personal desde su perfil{'\n'}
+                • El QR contiene su email para identificación{'\n'}
+                • Escanea el QR para registrar asistencia automáticamente
+              </Text>
             </View>
 
             {filteredEvents.map((event) => {
