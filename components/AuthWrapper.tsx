@@ -174,7 +174,14 @@ function FeatureItem({ emoji, title, description }: FeatureItemProps) {
         alignItems: 'center',
         marginRight: 16,
       }}>
-        <Text style={{ fontSize: 24 }}>{emoji}</Text>
+        <Text style={{ 
+          fontSize: 24,
+          textAlign: 'center',
+          includeFontPadding: false,
+          textAlignVertical: 'center'
+        }}>
+          {emoji}
+        </Text>
       </View>
       <View style={{ flex: 1 }}>
         <Text style={[commonStyles.subtitle, { fontSize: 16, marginBottom: 4 }]}>
