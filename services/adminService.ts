@@ -173,6 +173,28 @@ export class AdminService {
     }
   }
 
+  static async deleteSpeaker(speakerId: string): Promise<boolean> {
+    try {
+      console.log('AdminService - Deleting speaker:', speakerId);
+      
+      const { error } = await supabase
+        .from('speakers')
+        .delete()
+        .eq('id', speakerId);
+
+      if (error) {
+        console.error('AdminService - Error deleting speaker:', error);
+        return false;
+      }
+
+      console.log('AdminService - Speaker deleted successfully');
+      return true;
+    } catch (error) {
+      console.error('AdminService - Error in deleteSpeaker:', error);
+      return false;
+    }
+  }
+
   // Attendance Management
   static async getAttendance(edition: number): Promise<EventAttendance[]> {
     try {
@@ -257,6 +279,25 @@ export class AdminService {
       return true;
     } catch (error) {
       console.error('AdminService - Error in updateAttendance:', error);
+      return false;
+    }
+  }
+
+  static async bulkUpdateAttendance(attendanceUpdates: Array<{eventId: string, userId: string, attended: boolean}>): Promise<boolean> {
+    try {
+      console.log('AdminService - Bulk updating attendance:', attendanceUpdates.length, 'records');
+      
+      const promises = attendanceUpdates.map(update => 
+        this.updateAttendance(update.eventId, update.userId, update.attended)
+      );
+      
+      const results = await Promise.all(promises);
+      const success = results.every(result => result);
+      
+      console.log('AdminService - Bulk attendance update completed:', success);
+      return success;
+    } catch (error) {
+      console.error('AdminService - Error in bulkUpdateAttendance:', error);
       return false;
     }
   }
@@ -395,6 +436,122 @@ export class AdminService {
     } catch (error) {
       console.error('AdminService - Error in removeSpeakerFromEvent:', error);
       return false;
+    }
+  }
+
+  // QR Code Generation Helpers
+  static generateAttendanceQR(eventId: string, userId: string): string {
+    return `${eventId}:${userId}`;
+  }
+
+  static generateSpeakerAttendanceQR(eventId: string, speakerId: string): string {
+    return `${eventId}:${speakerId}:speaker`;
+  }
+
+  // Statistics and Reports
+  static async getEventStatistics(eventId: string): Promise<{
+    totalRegistered: number;
+    totalAttended: number;
+    attendanceRate: number;
+    speakersCount: number;
+    speakersAttended: number;
+  }> {
+    try {
+      console.log('AdminService - Getting event statistics for:', eventId);
+      
+      const [attendanceData, speakersData] = await Promise.all([
+        supabase
+          .from('event_attendance')
+          .select('attended')
+          .eq('event_id', eventId),
+        supabase
+          .from('event_speakers')
+          .select('attended')
+          .eq('event_id', eventId)
+      ]);
+
+      const attendance = attendanceData.data || [];
+      const speakers = speakersData.data || [];
+
+      const totalRegistered = attendance.length;
+      const totalAttended = attendance.filter(a => a.attended).length;
+      const attendanceRate = totalRegistered > 0 ? (totalAttended / totalRegistered) * 100 : 0;
+      const speakersCount = speakers.length;
+      const speakersAttended = speakers.filter(s => s.attended).length;
+
+      const stats = {
+        totalRegistered,
+        totalAttended,
+        attendanceRate,
+        speakersCount,
+        speakersAttended,
+      };
+
+      console.log('AdminService - Event statistics:', stats);
+      return stats;
+    } catch (error) {
+      console.error('AdminService - Error getting event statistics:', error);
+      return {
+        totalRegistered: 0,
+        totalAttended: 0,
+        attendanceRate: 0,
+        speakersCount: 0,
+        speakersAttended: 0,
+      };
+    }
+  }
+
+  static async getEditionStatistics(edition: number): Promise<{
+    totalEvents: number;
+    totalAttendees: number;
+    totalSpeakers: number;
+    averageAttendanceRate: number;
+  }> {
+    try {
+      console.log('AdminService - Getting edition statistics for:', edition);
+      
+      const [eventsData, attendanceData, speakersData] = await Promise.all([
+        supabase
+          .from('events')
+          .select('id')
+          .eq('edition', edition),
+        supabase
+          .from('event_attendance')
+          .select('attended, events!inner(edition)')
+          .eq('events.edition', edition),
+        supabase
+          .from('event_speakers')
+          .select('id, events!inner(edition)')
+          .eq('events.edition', edition)
+      ]);
+
+      const events = eventsData.data || [];
+      const attendance = attendanceData.data || [];
+      const speakers = speakersData.data || [];
+
+      const totalEvents = events.length;
+      const totalAttendees = attendance.length;
+      const totalSpeakers = speakers.length;
+      const attendedCount = attendance.filter(a => a.attended).length;
+      const averageAttendanceRate = totalAttendees > 0 ? (attendedCount / totalAttendees) * 100 : 0;
+
+      const stats = {
+        totalEvents,
+        totalAttendees,
+        totalSpeakers,
+        averageAttendanceRate,
+      };
+
+      console.log('AdminService - Edition statistics:', stats);
+      return stats;
+    } catch (error) {
+      console.error('AdminService - Error getting edition statistics:', error);
+      return {
+        totalEvents: 0,
+        totalAttendees: 0,
+        totalSpeakers: 0,
+        averageAttendanceRate: 0,
+      };
     }
   }
 }

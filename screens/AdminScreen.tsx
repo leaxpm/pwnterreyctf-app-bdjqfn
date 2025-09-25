@@ -1,10 +1,12 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, TextInput, Alert, RefreshControl } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, TextInput, Alert, RefreshControl, Modal } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { colors, commonStyles, buttonStyles } from '../styles/commonStyles';
 import Icon from '../components/Icon';
 import SimpleBottomSheet from '../components/BottomSheet';
+import QRScanner from '../components/QRScanner';
+import QRGenerator from '../components/QRGenerator';
 import { useAuth } from '../hooks/useAuth';
 import { useEvents } from '../hooks/useEvents';
 import { Event, Speaker, EventAttendance, EventSpeaker } from '../types/Event';
@@ -21,6 +23,8 @@ export default function AdminScreen({ onClose }: AdminScreenProps) {
   const [activeTab, setActiveTab] = useState<'events' | 'attendance' | 'speakers'>('events');
   const [showEventForm, setShowEventForm] = useState(false);
   const [showSpeakerForm, setShowSpeakerForm] = useState(false);
+  const [showQRScanner, setShowQRScanner] = useState(false);
+  const [showQRGenerator, setShowQRGenerator] = useState(false);
   const [editingEvent, setEditingEvent] = useState<Event | null>(null);
   const [editingSpeaker, setEditingSpeaker] = useState<Speaker | null>(null);
   const [speakers, setSpeakers] = useState<Speaker[]>([]);
@@ -240,6 +244,34 @@ export default function AdminScreen({ onClose }: AdminScreenProps) {
     }
   };
 
+  const handleDeleteSpeaker = async (speakerId: string) => {
+    Alert.alert(
+      'Confirmar Eliminación',
+      '¿Estás seguro de que quieres eliminar este speaker?',
+      [
+        { text: 'Cancelar', style: 'cancel' },
+        {
+          text: 'Eliminar',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              const success = await AdminService.deleteSpeaker(speakerId);
+              if (success) {
+                Alert.alert('Éxito', 'Speaker eliminado exitosamente');
+                await loadAdminData();
+              } else {
+                Alert.alert('Error', 'Error eliminando el speaker');
+              }
+            } catch (error) {
+              console.error('AdminScreen - Error deleting speaker:', error);
+              Alert.alert('Error', 'Error eliminando el speaker');
+            }
+          },
+        },
+      ]
+    );
+  };
+
   const handleToggleAttendance = async (eventId: string, userId: string, currentStatus: boolean) => {
     try {
       console.log('AdminScreen - Toggling attendance:', eventId, userId, !currentStatus);
@@ -269,6 +301,54 @@ export default function AdminScreen({ onClose }: AdminScreenProps) {
     } catch (error) {
       console.error('AdminScreen - Error toggling speaker attendance:', error);
       Alert.alert('Error', 'Error actualizando la asistencia del speaker');
+    }
+  };
+
+  const handleQRScan = async (data: string) => {
+    try {
+      console.log('AdminScreen - QR Scanned:', data);
+      setShowQRScanner(false);
+      
+      // Parse QR data - expecting format: "event_id:user_id" or "event_id:speaker_id:speaker"
+      const parts = data.split(':');
+      if (parts.length < 2) {
+        Alert.alert('Error', 'Código QR inválido');
+        return;
+      }
+
+      const eventId = parts[0];
+      const userId = parts[1];
+      const isSpeaker = parts[2] === 'speaker';
+
+      // Verify event exists
+      const event = events.find(e => e.id === eventId);
+      if (!event) {
+        Alert.alert('Error', 'Evento no encontrado');
+        return;
+      }
+
+      if (isSpeaker) {
+        // Handle speaker attendance
+        const success = await AdminService.updateSpeakerAttendance(eventId, userId, true);
+        if (success) {
+          Alert.alert('Éxito', `Asistencia de speaker registrada para: ${event.title}`);
+          await loadAdminData();
+        } else {
+          Alert.alert('Error', 'Error registrando asistencia del speaker');
+        }
+      } else {
+        // Handle user attendance
+        const success = await AdminService.updateAttendance(eventId, userId, true);
+        if (success) {
+          Alert.alert('Éxito', `Asistencia registrada para: ${event.title}`);
+          await loadAdminData();
+        } else {
+          Alert.alert('Error', 'Error registrando asistencia');
+        }
+      }
+    } catch (error) {
+      console.error('AdminScreen - Error processing QR scan:', error);
+      Alert.alert('Error', 'Error procesando código QR');
     }
   };
 
@@ -374,9 +454,14 @@ export default function AdminScreen({ onClose }: AdminScreenProps) {
           <Icon name="arrow-left" size={24} color={colors.text} />
         </TouchableOpacity>
         <Text style={commonStyles.title}>Panel de Admin</Text>
-        <TouchableOpacity onPress={onRefresh}>
-          <Icon name="refresh-cw" size={24} color={colors.text} />
-        </TouchableOpacity>
+        <View style={{ flexDirection: 'row', gap: 12 }}>
+          <TouchableOpacity onPress={() => setShowQRGenerator(true)}>
+            <Icon name="qr-code" size={24} color={colors.text} />
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => setShowQRScanner(true)}>
+            <Icon name="camera" size={24} color={colors.text} />
+          </TouchableOpacity>
+        </View>
       </View>
 
       {/* Edition Selector */}
@@ -523,9 +608,25 @@ export default function AdminScreen({ onClose }: AdminScreenProps) {
         {/* Attendance Tab */}
         {activeTab === 'attendance' && (
           <View style={{ padding: 20 }}>
-            <Text style={[commonStyles.subtitle, { marginBottom: 20 }]}>
-              Asistencia {selectedEdition}
-            </Text>
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+              <Text style={commonStyles.subtitle}>Asistencia {selectedEdition}</Text>
+              <View style={{ flexDirection: 'row', gap: 8 }}>
+                <TouchableOpacity
+                  style={[buttonStyles.secondary]}
+                  onPress={() => setShowQRGenerator(true)}
+                >
+                  <Icon name="qr-code" size={16} color={colors.text} />
+                  <Text style={[buttonStyles.secondaryText, { marginLeft: 6 }]}>Generar</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[buttonStyles.primary, { backgroundColor: colors.success }]}
+                  onPress={() => setShowQRScanner(true)}
+                >
+                  <Icon name="camera" size={16} color={colors.background} />
+                  <Text style={[buttonStyles.primaryText, { marginLeft: 6 }]}>Escanear</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
 
             {filteredEvents.map((event) => {
               const eventAttendance = attendance.filter(a => a.event_id === event.id);
@@ -628,6 +729,15 @@ export default function AdminScreen({ onClose }: AdminScreenProps) {
                 </View>
               );
             })}
+
+            {filteredEvents.length === 0 && (
+              <View style={{ alignItems: 'center', paddingVertical: 40 }}>
+                <Icon name="users" size={48} color={colors.textSecondary} />
+                <Text style={[commonStyles.textSecondary, { marginTop: 16 }]}>
+                  No hay eventos para la edición {selectedEdition}
+                </Text>
+              </View>
+            )}
           </View>
         )}
 
@@ -672,12 +782,20 @@ export default function AdminScreen({ onClose }: AdminScreenProps) {
                       </Text>
                     )}
                   </View>
-                  <TouchableOpacity
-                    style={{ padding: 8 }}
-                    onPress={() => openEditSpeaker(speaker)}
-                  >
-                    <Icon name="edit-2" size={16} color={colors.primary} />
-                  </TouchableOpacity>
+                  <View style={{ flexDirection: 'row', gap: 8 }}>
+                    <TouchableOpacity
+                      style={{ padding: 8 }}
+                      onPress={() => openEditSpeaker(speaker)}
+                    >
+                      <Icon name="edit-2" size={16} color={colors.primary} />
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      style={{ padding: 8 }}
+                      onPress={() => handleDeleteSpeaker(speaker.id)}
+                    >
+                      <Icon name="trash-2" size={16} color={colors.error} />
+                    </TouchableOpacity>
+                  </View>
                 </View>
               </View>
             ))}
@@ -693,6 +811,31 @@ export default function AdminScreen({ onClose }: AdminScreenProps) {
           </View>
         )}
       </ScrollView>
+
+      {/* QR Scanner Modal */}
+      <Modal
+        visible={showQRScanner}
+        animationType="slide"
+        presentationStyle="fullScreen"
+      >
+        <QRScanner
+          onScan={handleQRScan}
+          onClose={() => setShowQRScanner(false)}
+        />
+      </Modal>
+
+      {/* QR Generator Modal */}
+      <Modal
+        visible={showQRGenerator}
+        animationType="slide"
+        presentationStyle="fullScreen"
+      >
+        <QRGenerator
+          events={filteredEvents}
+          speakers={speakers}
+          onClose={() => setShowQRGenerator(false)}
+        />
+      </Modal>
 
       {/* Event Form Bottom Sheet */}
       <SimpleBottomSheet
