@@ -9,9 +9,12 @@ import { useAuth } from '../hooks/useAuth';
 import { useEvents } from '../hooks/useEvents';
 import { Event, Speaker, EventAttendance, EventSpeaker } from '../types/Event';
 import { AdminService } from '../services/adminService';
-import { router } from 'expo-router';
 
-export default function AdminScreen() {
+interface AdminScreenProps {
+  onClose?: () => void;
+}
+
+export default function AdminScreen({ onClose }: AdminScreenProps) {
   const { user } = useAuth();
   const [selectedEdition, setSelectedEdition] = useState(2025);
   const { events, refreshEvents } = useEvents(selectedEdition);
@@ -82,22 +85,22 @@ export default function AdminScreen() {
     console.log('AdminScreen - User:', user?.email, 'role:', user?.role);
     
     if (!user) {
-      console.log('AdminScreen - No user found, redirecting...');
+      console.log('AdminScreen - No user found, closing...');
       Alert.alert('Error', 'Debes iniciar sesión para acceder al panel de administración.');
-      router.back();
+      if (onClose) onClose();
       return;
     }
 
     if (user.role !== 'admin') {
-      console.log('AdminScreen - User is not admin, redirecting...');
+      console.log('AdminScreen - User is not admin, closing...');
       Alert.alert('Acceso Denegado', 'No tienes permisos para acceder al panel de administración.');
-      router.back();
+      if (onClose) onClose();
       return;
     }
     
     console.log('AdminScreen - User is admin, loading data...');
     loadAdminData();
-  }, [user, loadAdminData]);
+  }, [user, loadAdminData, onClose]);
 
   const onRefresh = async () => {
     setRefreshing(true);
@@ -321,6 +324,13 @@ export default function AdminScreen() {
     setShowSpeakerForm(true);
   };
 
+  const handleClose = () => {
+    console.log('AdminScreen - Close button pressed');
+    if (onClose) {
+      onClose();
+    }
+  };
+
   const filteredEvents = events.filter(event => event.edition === selectedEdition);
 
   // Show loading screen while checking user permissions
@@ -347,7 +357,7 @@ export default function AdminScreen() {
           </Text>
           <TouchableOpacity
             style={[buttonStyles.primary, { marginTop: 20 }]}
-            onPress={() => router.back()}
+            onPress={handleClose}
           >
             <Text style={buttonStyles.primaryText}>Volver</Text>
           </TouchableOpacity>
@@ -360,7 +370,7 @@ export default function AdminScreen() {
     <SafeAreaView style={commonStyles.container}>
       {/* Header */}
       <View style={commonStyles.header}>
-        <TouchableOpacity onPress={() => router.back()}>
+        <TouchableOpacity onPress={handleClose}>
           <Icon name="arrow-left" size={24} color={colors.text} />
         </TouchableOpacity>
         <Text style={commonStyles.title}>Panel de Admin</Text>

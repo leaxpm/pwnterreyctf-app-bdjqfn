@@ -5,7 +5,6 @@ import { colors, commonStyles } from '../styles/commonStyles';
 import Icon from './Icon';
 import SimpleBottomSheet from './BottomSheet';
 import { useAuth } from '../hooks/useAuth';
-import { router } from 'expo-router';
 
 interface TopBarProps {
   title: string;
@@ -31,42 +30,27 @@ export default function TopBar({
 
   const handleAdminPress = () => {
     console.log('TopBar - Admin button pressed');
+    console.log('TopBar - User:', user ? { email: user.email, role: user.role } : 'No user');
     
-    // Show alert for debugging
-    Alert.alert(
-      'Admin Button Pressed',
-      `User: ${user?.email || 'No user'}\nRole: ${user?.role || 'No role'}\nIs Admin: ${isAdmin}`,
-      [
-        { text: 'Cancel', style: 'cancel' },
-        { 
-          text: 'Go to Admin', 
-          onPress: () => {
-            if (!user) {
-              Alert.alert('Error', 'No user found');
-              return;
-            }
-            
-            if (user.role !== 'admin') {
-              Alert.alert('Error', `User is not admin. Role: ${user.role}`);
-              return;
-            }
+    if (!user) {
+      Alert.alert('Error', 'Debes iniciar sesión para acceder al panel de administración');
+      return;
+    }
+    
+    if (user.role !== 'admin') {
+      Alert.alert('Acceso Denegado', 'No tienes permisos para acceder al panel de administración');
+      return;
+    }
 
-            if (onAdminPress) {
-              onAdminPress();
-            } else {
-              try {
-                router.push('/admin');
-              } catch (error) {
-                Alert.alert('Navigation Error', `Error: ${error}`);
-              }
-            }
-          }
-        }
-      ]
-    );
+    if (onAdminPress) {
+      console.log('TopBar - Calling onAdminPress callback');
+      onAdminPress();
+    } else {
+      console.log('TopBar - No onAdminPress callback provided');
+    }
   };
 
-  // Always show admin button for testing
+  // Show admin button for testing
   const shouldShowAdminButton = showAdminButton;
 
   return (
@@ -84,7 +68,7 @@ export default function TopBar({
             <Icon name="chevron-down" size={16} color={colors.text} />
           </TouchableOpacity>
 
-          {/* Admin Button - Always show for testing */}
+          {/* Admin Button */}
           {shouldShowAdminButton && (
             <TouchableOpacity 
               style={[styles.adminButton, { backgroundColor: isAdmin ? colors.primary : colors.warning }]}

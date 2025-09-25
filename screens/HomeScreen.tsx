@@ -10,7 +10,11 @@ import { useEvents } from '../hooks/useEvents';
 import { useAuth } from '../hooks/useAuth';
 import EventCard from '../components/EventCard';
 
-export default function HomeScreen() {
+interface HomeScreenProps {
+  onShowAdmin?: () => void;
+}
+
+export default function HomeScreen({ onShowAdmin }: HomeScreenProps) {
   const [selectedEdition, setSelectedEdition] = useState(2025);
   const { events, toggleFavorite, loading, error, refreshEvents } = useEvents(selectedEdition);
   const { user, userStats, updateStats } = useAuth();
@@ -77,7 +81,10 @@ export default function HomeScreen() {
   const handleAdminPress = () => {
     console.log('HomeScreen - Admin button pressed');
     console.log('HomeScreen - Current user:', user ? { id: user.id, email: user.email, role: user.role } : null);
-    // The TopBar will handle the navigation
+    
+    if (onShowAdmin) {
+      onShowAdmin();
+    }
   };
 
   if (loading && events.length === 0) {
