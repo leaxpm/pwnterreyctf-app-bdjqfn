@@ -3,14 +3,20 @@ import { supabase } from '../config/supabase';
 import { Event } from '../types/Event';
 
 export class EventService {
-  static async getAllEvents(): Promise<Event[]> {
+  static async getAllEvents(edition?: number): Promise<Event[]> {
     try {
-      console.log('Fetching all events from Supabase...');
+      console.log('Fetching events from Supabase for edition:', edition);
       
-      const { data, error } = await supabase
+      let query = supabase
         .from('events')
         .select('*')
         .order('date', { ascending: true });
+
+      if (edition) {
+        query = query.eq('edition', edition);
+      }
+
+      const { data, error } = await query;
 
       if (error) {
         console.error('Error fetching events:', error);
@@ -151,6 +157,7 @@ export class EventService {
       location: supabaseEvent.location,
       description: supabaseEvent.description,
       date: supabaseEvent.date,
+      edition: supabaseEvent.edition || 2025,
       isFavorite: false, // This will be set by the user service
     };
   }

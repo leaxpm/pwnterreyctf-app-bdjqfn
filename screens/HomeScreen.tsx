@@ -2,16 +2,18 @@
 import { SafeAreaView } from 'react-native-safe-area-context';
 import React, { useState } from 'react';
 import FilterTabs from '../components/FilterTabs';
+import TopBar from '../components/TopBar';
 import { useEvents } from '../hooks/useEvents';
 import { useAuth } from '../hooks/useAuth';
 import { colors, commonStyles } from '../styles/commonStyles';
-import Icon from '../components/Icon';
-import { View, Text, ScrollView, TouchableOpacity, RefreshControl } from 'react-native';
+import { View, Text, ScrollView, RefreshControl } from 'react-native';
 import EventCard from '../components/EventCard';
+import { router } from 'expo-router';
 
 export default function HomeScreen() {
-  const { events, toggleFavorite, loading, error, refreshEvents } = useEvents();
-  const { userStats, updateStats } = useAuth();
+  const [selectedEdition, setSelectedEdition] = useState(2025);
+  const { events, toggleFavorite, loading, error, refreshEvents } = useEvents(selectedEdition);
+  const { userStats, updateStats, user } = useAuth();
   const [activeFilter, setActiveFilter] = useState('Todos');
   const [refreshing, setRefreshing] = useState(false);
 
@@ -68,14 +70,19 @@ export default function HomeScreen() {
     );
   }
 
+  const handleAdminPress = () => {
+    router.push('/admin');
+  };
+
   return (
     <SafeAreaView style={commonStyles.container}>
-      <View style={commonStyles.header}>
-        <Text style={commonStyles.title}>PwnterreyCTF</Text>
-        <TouchableOpacity onPress={onRefresh}>
-          <Icon name="refresh-cw" size={24} color={colors.text} />
-        </TouchableOpacity>
-      </View>
+      <TopBar
+        title="PwnterreyCTF"
+        selectedEdition={selectedEdition}
+        onEditionChange={setSelectedEdition}
+        showAdminButton={true}
+        onAdminPress={handleAdminPress}
+      />
 
       {error && (
         <View style={{

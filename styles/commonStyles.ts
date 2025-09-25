@@ -15,6 +15,11 @@ export const colors = {
   warning: '#F59E0B',
   error: '#EF4444',
   info: '#3B82F6',
+  
+  // Event type colors
+  ctfTag: '#EF4444',
+  tallerTag: '#10B981',
+  charlaTag: '#3B82F6',
 };
 
 export const commonStyles = StyleSheet.create({
@@ -96,6 +101,10 @@ export const commonStyles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: 8,
+  },
+  content: {
+    flex: 1,
+    paddingHorizontal: 20,
   },
 });
 

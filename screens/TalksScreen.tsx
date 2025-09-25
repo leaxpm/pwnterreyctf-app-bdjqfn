@@ -3,13 +3,16 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useEvents } from '../hooks/useEvents';
 import { useAuth } from '../hooks/useAuth';
 import Icon from '../components/Icon';
+import TopBar from '../components/TopBar';
 import { colors, commonStyles } from '../styles/commonStyles';
 import { View, Text, ScrollView, RefreshControl } from 'react-native';
 import EventCard from '../components/EventCard';
 import React, { useState } from 'react';
+import { router } from 'expo-router';
 
 export default function TalksScreen() {
-  const { getEventsByType, toggleFavorite, loading, refreshEvents } = useEvents();
+  const [selectedEdition, setSelectedEdition] = useState(2025);
+  const { getEventsByType, toggleFavorite, loading, refreshEvents } = useEvents(selectedEdition);
   const { userStats, updateStats } = useAuth();
   const [refreshing, setRefreshing] = useState(false);
 
@@ -42,6 +45,10 @@ export default function TalksScreen() {
     setRefreshing(false);
   };
 
+  const handleAdminPress = () => {
+    router.push('/admin');
+  };
+
   if (loading && talks.length === 0) {
     return (
       <SafeAreaView style={commonStyles.container}>
@@ -54,9 +61,24 @@ export default function TalksScreen() {
 
   return (
     <SafeAreaView style={commonStyles.container}>
-      <View style={commonStyles.header}>
-        <Text style={commonStyles.title}>Charlas</Text>
-        <Icon name="mic" size={24} color={colors.text} />
+      <TopBar
+        title="Charlas"
+        selectedEdition={selectedEdition}
+        onEditionChange={setSelectedEdition}
+        showAdminButton={true}
+        onAdminPress={handleAdminPress}
+      />
+      
+      <View style={{ paddingHorizontal: 20, paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: colors.border }}>
+        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+            <Icon name="mic" size={20} color={colors.charlaTag} />
+            <Text style={[commonStyles.subtitle, { marginLeft: 8 }]}>Charlas Técnicas</Text>
+          </View>
+          <Text style={commonStyles.textSecondary}>
+            {talks.length} charlas
+          </Text>
+        </View>
       </View>
 
       <ScrollView 

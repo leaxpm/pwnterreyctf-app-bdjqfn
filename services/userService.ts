@@ -35,6 +35,7 @@ export class UserService {
         name: userData.name,
         email: userData.email,
         avatar: userData.avatar,
+        role: userData.role || 'user',
         favoriteEvents,
       };
     } catch (error) {
@@ -82,6 +83,7 @@ export class UserService {
           name: updatedUser.name,
           email: updatedUser.email,
           avatar: updatedUser.avatar,
+          role: updatedUser.role || 'user',
           favoriteEvents,
         };
       }
@@ -122,6 +124,7 @@ export class UserService {
         name: data.name,
         email: data.email,
         avatar: data.avatar,
+        role: data.role || 'user',
         favoriteEvents: [],
       };
     } catch (error) {
@@ -160,6 +163,7 @@ export class UserService {
         name: data.name,
         email: data.email,
         avatar: data.avatar,
+        role: data.role || 'user',
         favoriteEvents,
       };
     } catch (error) {
