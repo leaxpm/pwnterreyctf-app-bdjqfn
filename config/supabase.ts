@@ -5,7 +5,7 @@ import { createClient } from '@supabase/supabase-js';
 const supabaseUrl = 'https://hncaxxeetuwccxnohmcj.supabase.co';
 const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhuY2F4eGVldHV3Y2N4bm9obWNqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTg3MzIxMzQsImV4cCI6MjA3NDMwODEzNH0.Xx_MPMyFYmmbywr7FUottzwWebhPfQNUAGH3QyXDgd4';
 
-export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey);
+export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 // Tipos para las tablas de Supabase
 export interface Database {

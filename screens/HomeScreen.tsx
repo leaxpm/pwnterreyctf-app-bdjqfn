@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { View, Text, ScrollView, RefreshControl } from 'react-native';
+import { View, Text, ScrollView, RefreshControl, Alert, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { colors, commonStyles } from '../styles/commonStyles';
 import FilterTabs from '../components/FilterTabs';
@@ -81,10 +81,16 @@ export default function HomeScreen({ onShowAdmin }: HomeScreenProps) {
   const handleAdminPress = () => {
     console.log('HomeScreen - Admin button pressed');
     console.log('HomeScreen - Current user:', user ? { id: user.id, email: user.email, role: user.role } : null);
+    console.log('HomeScreen - onShowAdmin callback exists:', !!onShowAdmin);
     
-    if (onShowAdmin) {
-      onShowAdmin();
+    if (!onShowAdmin) {
+      console.log('HomeScreen - ERROR: No onShowAdmin callback provided');
+      Alert.alert('Error', 'Función de administración no disponible');
+      return;
     }
+    
+    console.log('HomeScreen - Calling onShowAdmin callback');
+    onShowAdmin();
   };
 
   if (loading && events.length === 0) {
@@ -120,6 +126,31 @@ export default function HomeScreen({ onShowAdmin }: HomeScreenProps) {
           <Text style={{ color: colors.info, fontSize: 12 }}>
             Debug: User {user.email} - Role: {user.role} - ID: {user.id.slice(0, 8)}...
           </Text>
+          {user.role === 'admin' && (
+            <TouchableOpacity
+              style={{
+                backgroundColor: colors.primary,
+                padding: 8,
+                borderRadius: 6,
+                marginTop: 8,
+                alignItems: 'center',
+              }}
+              onPress={() => {
+                console.log('DEBUG BUTTON - Direct admin call');
+                if (onShowAdmin) {
+                  console.log('DEBUG BUTTON - Calling onShowAdmin');
+                  onShowAdmin();
+                } else {
+                  console.log('DEBUG BUTTON - No onShowAdmin callback');
+                  Alert.alert('Debug', 'No onShowAdmin callback available');
+                }
+              }}
+            >
+              <Text style={{ color: colors.background, fontSize: 12, fontWeight: '600' }}>
+                DEBUG: Abrir Admin Panel
+              </Text>
+            </TouchableOpacity>
+          )}
         </View>
       )}
 

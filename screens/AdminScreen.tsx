@@ -88,23 +88,14 @@ export default function AdminScreen({ onClose }: AdminScreenProps) {
     console.log('AdminScreen - Component mounted');
     console.log('AdminScreen - User:', user?.email, 'role:', user?.role);
     
-    if (!user) {
-      console.log('AdminScreen - No user found, closing...');
-      Alert.alert('Error', 'Debes iniciar sesión para acceder al panel de administración.');
-      if (onClose) onClose();
-      return;
+    // Only load data if we have a user, don't close the screen immediately
+    if (user) {
+      console.log('AdminScreen - User found, loading data...');
+      loadAdminData();
+    } else {
+      console.log('AdminScreen - No user found, waiting...');
     }
-
-    if (user.role !== 'admin') {
-      console.log('AdminScreen - User is not admin, closing...');
-      Alert.alert('Acceso Denegado', 'No tienes permisos para acceder al panel de administración.');
-      if (onClose) onClose();
-      return;
-    }
-    
-    console.log('AdminScreen - User is admin, loading data...');
-    loadAdminData();
-  }, [user, loadAdminData, onClose]);
+  }, [user, loadAdminData]);
 
   const onRefresh = async () => {
     setRefreshing(true);
@@ -417,8 +408,23 @@ export default function AdminScreen({ onClose }: AdminScreenProps) {
   if (!user) {
     return (
       <SafeAreaView style={commonStyles.container}>
+        {/* Header */}
+        <View style={commonStyles.header}>
+          <TouchableOpacity onPress={handleClose}>
+            <Icon name="arrow-left" size={24} color={colors.text} />
+          </TouchableOpacity>
+          <Text style={commonStyles.title}>Panel de Admin</Text>
+          <View style={{ width: 24 }} />
+        </View>
+        
         <View style={[commonStyles.container, { justifyContent: 'center', alignItems: 'center' }]}>
-          <Text style={commonStyles.text}>Verificando permisos...</Text>
+          <Icon name="user" size={64} color={colors.textSecondary} />
+          <Text style={[commonStyles.text, { marginTop: 16, textAlign: 'center' }]}>
+            Verificando permisos...
+          </Text>
+          <Text style={[commonStyles.textSecondary, { marginTop: 8, textAlign: 'center' }]}>
+            Cargando información del usuario
+          </Text>
         </View>
       </SafeAreaView>
     );
@@ -427,6 +433,15 @@ export default function AdminScreen({ onClose }: AdminScreenProps) {
   if (user.role !== 'admin') {
     return (
       <SafeAreaView style={commonStyles.container}>
+        {/* Header */}
+        <View style={commonStyles.header}>
+          <TouchableOpacity onPress={handleClose}>
+            <Icon name="arrow-left" size={24} color={colors.text} />
+          </TouchableOpacity>
+          <Text style={commonStyles.title}>Panel de Admin</Text>
+          <View style={{ width: 24 }} />
+        </View>
+        
         <View style={[commonStyles.container, { justifyContent: 'center', alignItems: 'center' }]}>
           <Icon name="shield-off" size={64} color={colors.textSecondary} />
           <Text style={[commonStyles.text, { marginTop: 16, textAlign: 'center' }]}>
@@ -434,6 +449,9 @@ export default function AdminScreen({ onClose }: AdminScreenProps) {
           </Text>
           <Text style={[commonStyles.textSecondary, { marginTop: 8, textAlign: 'center' }]}>
             No tienes permisos para acceder al panel de administración
+          </Text>
+          <Text style={[commonStyles.textSecondary, { marginTop: 4, textAlign: 'center', fontSize: 12 }]}>
+            Usuario: {user.email} - Rol: {user.role}
           </Text>
           <TouchableOpacity
             style={[buttonStyles.primary, { marginTop: 20 }]}
@@ -448,6 +466,23 @@ export default function AdminScreen({ onClose }: AdminScreenProps) {
 
   return (
     <SafeAreaView style={commonStyles.container}>
+      {/* Debug Info */}
+      <View style={{
+        backgroundColor: colors.success + '20',
+        margin: 20,
+        padding: 12,
+        borderRadius: 8,
+        borderLeftWidth: 4,
+        borderLeftColor: colors.success,
+      }}>
+        <Text style={{ color: colors.success, fontSize: 12 }}>
+          AdminScreen Rendered Successfully!
+        </Text>
+        <Text style={{ color: colors.success, fontSize: 10, marginTop: 4 }}>
+          User: {user?.email || 'No user'} - Role: {user?.role || 'No role'}
+        </Text>
+      </View>
+
       {/* Header */}
       <View style={commonStyles.header}>
         <TouchableOpacity onPress={handleClose}>

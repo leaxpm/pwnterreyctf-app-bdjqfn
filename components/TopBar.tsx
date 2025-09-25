@@ -31,27 +31,32 @@ export default function TopBar({
   const handleAdminPress = () => {
     console.log('TopBar - Admin button pressed');
     console.log('TopBar - User:', user ? { email: user.email, role: user.role } : 'No user');
+    console.log('TopBar - onAdminPress callback exists:', !!onAdminPress);
     
     if (!user) {
+      console.log('TopBar - No user found, showing alert');
       Alert.alert('Error', 'Debes iniciar sesión para acceder al panel de administración');
       return;
     }
     
     if (user.role !== 'admin') {
+      console.log('TopBar - User is not admin, showing alert');
       Alert.alert('Acceso Denegado', 'No tienes permisos para acceder al panel de administración');
       return;
     }
 
+    console.log('TopBar - User is admin, calling callback');
     if (onAdminPress) {
       console.log('TopBar - Calling onAdminPress callback');
       onAdminPress();
     } else {
-      console.log('TopBar - No onAdminPress callback provided');
+      console.log('TopBar - ERROR: No onAdminPress callback provided');
+      Alert.alert('Error', 'Función de administración no disponible');
     }
   };
 
-  // Show admin button for testing
-  const shouldShowAdminButton = showAdminButton;
+  // Show admin button if explicitly requested OR if user is admin (for testing)
+  const shouldShowAdminButton = showAdminButton || (user && user.role === 'admin');
 
   return (
     <>
