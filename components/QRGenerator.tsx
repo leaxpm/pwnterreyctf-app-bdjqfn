@@ -42,7 +42,6 @@ export default function QRGenerator({ events, speakers, onClose }: QRGeneratorPr
     }
 
     setGeneratedQR(qrData);
-    console.log('QRGenerator - Generated QR:', qrData);
   };
 
   const handleCopyQR = () => {

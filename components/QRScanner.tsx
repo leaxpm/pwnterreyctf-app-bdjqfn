@@ -25,7 +25,6 @@ export default function QRScanner({ onScan, onClose }: QRScannerProps) {
 
   const handleBarCodeScanned = ({ type, data }: { type: string; data: string }) => {
     setScanned(true);
-    console.log('QRScanner - Scanned:', type, data);
     onScan(data);
   };
 

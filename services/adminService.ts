@@ -6,8 +6,6 @@ export class AdminService {
   // Event Management
   static async createEvent(eventData: Omit<Event, 'id' | 'isFavorite'>): Promise<boolean> {
     try {
-      console.log('AdminService - Creating event:', eventData);
-      
       const { error } = await supabase
         .from('events')
         .insert({
@@ -23,22 +21,17 @@ export class AdminService {
         });
 
       if (error) {
-        console.error('AdminService - Error creating event:', error);
         return false;
       }
 
-      console.log('AdminService - Event created successfully');
       return true;
     } catch (error) {
-      console.error('AdminService - Error in createEvent:', error);
       return false;
     }
   }
 
   static async updateEvent(eventId: string, eventData: Partial<Omit<Event, 'id' | 'isFavorite'>>): Promise<boolean> {
     try {
-      console.log('AdminService - Updating event:', eventId, eventData);
-      
       const updateData: any = {};
       if (eventData.title) updateData.title = eventData.title;
       if (eventData.organizer) updateData.organizer = eventData.organizer;
@@ -58,36 +51,28 @@ export class AdminService {
         .eq('id', eventId);
 
       if (error) {
-        console.error('AdminService - Error updating event:', error);
         return false;
       }
 
-      console.log('AdminService - Event updated successfully');
       return true;
     } catch (error) {
-      console.error('AdminService - Error in updateEvent:', error);
       return false;
     }
   }
 
   static async deleteEvent(eventId: string): Promise<boolean> {
     try {
-      console.log('AdminService - Deleting event:', eventId);
-      
       const { error } = await supabase
         .from('events')
         .delete()
         .eq('id', eventId);
 
       if (error) {
-        console.error('AdminService - Error deleting event:', error);
         return false;
       }
 
-      console.log('AdminService - Event deleted successfully');
       return true;
     } catch (error) {
-      console.error('AdminService - Error in deleteEvent:', error);
       return false;
     }
   }
@@ -95,30 +80,23 @@ export class AdminService {
   // Speaker Management
   static async getSpeakers(): Promise<Speaker[]> {
     try {
-      console.log('AdminService - Getting speakers...');
-      
       const { data, error } = await supabase
         .from('speakers')
         .select('*')
         .order('name');
 
       if (error) {
-        console.error('AdminService - Error getting speakers:', error);
         return [];
       }
 
-      console.log('AdminService - Speakers fetched:', data?.length || 0);
       return data || [];
     } catch (error) {
-      console.error('AdminService - Error in getSpeakers:', error);
       return [];
     }
   }
 
   static async createSpeaker(speakerData: Omit<Speaker, 'id'>): Promise<boolean> {
     try {
-      console.log('AdminService - Creating speaker:', speakerData);
-      
       const { error } = await supabase
         .from('speakers')
         .insert({
@@ -131,22 +109,17 @@ export class AdminService {
         });
 
       if (error) {
-        console.error('AdminService - Error creating speaker:', error);
         return false;
       }
 
-      console.log('AdminService - Speaker created successfully');
       return true;
     } catch (error) {
-      console.error('AdminService - Error in createSpeaker:', error);
       return false;
     }
   }
 
   static async updateSpeaker(speakerId: string, speakerData: Partial<Omit<Speaker, 'id'>>): Promise<boolean> {
     try {
-      console.log('AdminService - Updating speaker:', speakerId, speakerData);
-      
       const updateData: any = { updated_at: new Date().toISOString() };
       if (speakerData.name) updateData.name = speakerData.name;
       if (speakerData.bio !== undefined) updateData.bio = speakerData.bio || null;
@@ -161,36 +134,28 @@ export class AdminService {
         .eq('id', speakerId);
 
       if (error) {
-        console.error('AdminService - Error updating speaker:', error);
         return false;
       }
 
-      console.log('AdminService - Speaker updated successfully');
       return true;
     } catch (error) {
-      console.error('AdminService - Error in updateSpeaker:', error);
       return false;
     }
   }
 
   static async deleteSpeaker(speakerId: string): Promise<boolean> {
     try {
-      console.log('AdminService - Deleting speaker:', speakerId);
-      
       const { error } = await supabase
         .from('speakers')
         .delete()
         .eq('id', speakerId);
 
       if (error) {
-        console.error('AdminService - Error deleting speaker:', error);
         return false;
       }
 
-      console.log('AdminService - Speaker deleted successfully');
       return true;
     } catch (error) {
-      console.error('AdminService - Error in deleteSpeaker:', error);
       return false;
     }
   }
@@ -198,8 +163,6 @@ export class AdminService {
   // Attendance Management
   static async getAttendance(edition: number): Promise<EventAttendance[]> {
     try {
-      console.log('AdminService - Getting attendance for edition:', edition);
-      
       const { data, error } = await supabase
         .from('event_attendance')
         .select(`
@@ -209,11 +172,9 @@ export class AdminService {
         .eq('events.edition', edition);
 
       if (error) {
-        console.error('AdminService - Error getting attendance:', error);
         return [];
       }
 
-      console.log('AdminService - Attendance fetched:', data?.length || 0);
       return data?.map(item => ({
         id: item.id,
         event_id: item.event_id,
@@ -222,15 +183,12 @@ export class AdminService {
         checked_in_at: item.checked_in_at,
       })) || [];
     } catch (error) {
-      console.error('AdminService - Error in getAttendance:', error);
       return [];
     }
   }
 
   static async updateAttendance(eventId: string, userId: string, attended: boolean): Promise<boolean> {
     try {
-      console.log('AdminService - Updating attendance:', eventId, userId, attended);
-      
       const { data: existing, error: checkError } = await supabase
         .from('event_attendance')
         .select('id')
@@ -239,7 +197,6 @@ export class AdminService {
         .single();
 
       if (checkError && checkError.code !== 'PGRST116') {
-        console.error('AdminService - Error checking attendance:', checkError);
         return false;
       }
 
@@ -255,7 +212,6 @@ export class AdminService {
           .eq('id', existing.id);
 
         if (error) {
-          console.error('AdminService - Error updating attendance:', error);
           return false;
         }
       } else {
@@ -270,23 +226,18 @@ export class AdminService {
           });
 
         if (error) {
-          console.error('AdminService - Error creating attendance:', error);
           return false;
         }
       }
 
-      console.log('AdminService - Attendance updated successfully');
       return true;
     } catch (error) {
-      console.error('AdminService - Error in updateAttendance:', error);
       return false;
     }
   }
 
   static async bulkUpdateAttendance(attendanceUpdates: Array<{eventId: string, userId: string, attended: boolean}>): Promise<boolean> {
     try {
-      console.log('AdminService - Bulk updating attendance:', attendanceUpdates.length, 'records');
-      
       const promises = attendanceUpdates.map(update => 
         this.updateAttendance(update.eventId, update.userId, update.attended)
       );
@@ -294,10 +245,8 @@ export class AdminService {
       const results = await Promise.all(promises);
       const success = results.every(result => result);
       
-      console.log('AdminService - Bulk attendance update completed:', success);
       return success;
     } catch (error) {
-      console.error('AdminService - Error in bulkUpdateAttendance:', error);
       return false;
     }
   }
@@ -305,8 +254,6 @@ export class AdminService {
   // Event Speaker Management
   static async getEventSpeakers(edition: number): Promise<EventSpeaker[]> {
     try {
-      console.log('AdminService - Getting event speakers for edition:', edition);
-      
       const { data, error } = await supabase
         .from('event_speakers')
         .select(`
@@ -317,11 +264,9 @@ export class AdminService {
         .eq('events.edition', edition);
 
       if (error) {
-        console.error('AdminService - Error getting event speakers:', error);
         return [];
       }
 
-      console.log('AdminService - Event speakers fetched:', data?.length || 0);
       return data?.map(item => ({
         id: item.id,
         event_id: item.event_id,
@@ -331,15 +276,12 @@ export class AdminService {
         speaker: item.speakers,
       })) || [];
     } catch (error) {
-      console.error('AdminService - Error in getEventSpeakers:', error);
       return [];
     }
   }
 
   static async updateSpeakerAttendance(eventId: string, speakerId: string, attended: boolean): Promise<boolean> {
     try {
-      console.log('AdminService - Updating speaker attendance:', eventId, speakerId, attended);
-      
       const { data: existing, error: checkError } = await supabase
         .from('event_speakers')
         .select('id')
@@ -348,7 +290,6 @@ export class AdminService {
         .single();
 
       if (checkError && checkError.code !== 'PGRST116') {
-        console.error('AdminService - Error checking speaker attendance:', checkError);
         return false;
       }
 
@@ -362,7 +303,6 @@ export class AdminService {
           .eq('id', existing.id);
 
         if (error) {
-          console.error('AdminService - Error updating speaker attendance:', error);
           return false;
         }
       } else {
@@ -377,23 +317,18 @@ export class AdminService {
           });
 
         if (error) {
-          console.error('AdminService - Error creating speaker attendance:', error);
           return false;
         }
       }
 
-      console.log('AdminService - Speaker attendance updated successfully');
       return true;
     } catch (error) {
-      console.error('AdminService - Error in updateSpeakerAttendance:', error);
       return false;
     }
   }
 
   static async assignSpeakerToEvent(eventId: string, speakerId: string, role: 'speaker' | 'moderator' | 'organizer' = 'speaker'): Promise<boolean> {
     try {
-      console.log('AdminService - Assigning speaker to event:', eventId, speakerId, role);
-      
       const { error } = await supabase
         .from('event_speakers')
         .insert({
@@ -404,22 +339,17 @@ export class AdminService {
         });
 
       if (error) {
-        console.error('AdminService - Error assigning speaker to event:', error);
         return false;
       }
 
-      console.log('AdminService - Speaker assigned to event successfully');
       return true;
     } catch (error) {
-      console.error('AdminService - Error in assignSpeakerToEvent:', error);
       return false;
     }
   }
 
   static async removeSpeakerFromEvent(eventId: string, speakerId: string): Promise<boolean> {
     try {
-      console.log('AdminService - Removing speaker from event:', eventId, speakerId);
-      
       const { error } = await supabase
         .from('event_speakers')
         .delete()
@@ -427,14 +357,11 @@ export class AdminService {
         .eq('speaker_id', speakerId);
 
       if (error) {
-        console.error('AdminService - Error removing speaker from event:', error);
         return false;
       }
 
-      console.log('AdminService - Speaker removed from event successfully');
       return true;
     } catch (error) {
-      console.error('AdminService - Error in removeSpeakerFromEvent:', error);
       return false;
     }
   }
@@ -457,8 +384,6 @@ export class AdminService {
     speakersAttended: number;
   }> {
     try {
-      console.log('AdminService - Getting event statistics for:', eventId);
-      
       const [attendanceData, speakersData] = await Promise.all([
         supabase
           .from('event_attendance')
@@ -487,10 +412,8 @@ export class AdminService {
         speakersAttended,
       };
 
-      console.log('AdminService - Event statistics:', stats);
       return stats;
     } catch (error) {
-      console.error('AdminService - Error getting event statistics:', error);
       return {
         totalRegistered: 0,
         totalAttended: 0,
@@ -508,8 +431,6 @@ export class AdminService {
     averageAttendanceRate: number;
   }> {
     try {
-      console.log('AdminService - Getting edition statistics for:', edition);
-      
       const [eventsData, attendanceData, speakersData] = await Promise.all([
         supabase
           .from('events')
@@ -542,10 +463,8 @@ export class AdminService {
         averageAttendanceRate,
       };
 
-      console.log('AdminService - Edition statistics:', stats);
       return stats;
     } catch (error) {
-      console.error('AdminService - Error getting edition statistics:', error);
       return {
         totalEvents: 0,
         totalAttendees: 0,
