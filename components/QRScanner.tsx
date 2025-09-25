@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, Alert, StyleSheet } from 'react-native';
+import { View, Text, TouchableOpacity, Alert, StyleSheet, Platform } from 'react-native';
 import { BarCodeScanner } from 'expo-barcode-scanner';
 import { colors, commonStyles, buttonStyles } from '../styles/commonStyles';
 import Icon from './Icon';
@@ -13,25 +13,62 @@ interface QRScannerProps {
 export default function QRScanner({ onScan, onClose }: QRScannerProps) {
   const [hasPermission, setHasPermission] = useState<boolean | null>(null);
   const [scanned, setScanned] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const getBarCodeScannerPermissions = async () => {
-      const { status } = await BarCodeScanner.requestPermissionsAsync();
-      setHasPermission(status === 'granted');
+      try {
+        console.log('Requesting camera permissions...');
+        const { status } = await BarCodeScanner.requestPermissionsAsync();
+        console.log('Camera permission status:', status);
+        setHasPermission(status === 'granted');
+      } catch (error) {
+        console.error('Error requesting camera permissions:', error);
+        setHasPermission(false);
+        Alert.alert(
+          'Error',
+          'No se pudo solicitar permisos de cámara. Por favor, verifica la configuración de la aplicación.'
+        );
+      } finally {
+        setIsLoading(false);
+      }
     };
 
     getBarCodeScannerPermissions();
   }, []);
 
   const handleBarCodeScanned = ({ type, data }: { type: string; data: string }) => {
+    console.log('QR Code scanned:', { type, data });
     setScanned(true);
     onScan(data);
   };
 
+  const handleScanAgain = () => {
+    console.log('Scanning again...');
+    setScanned(false);
+  };
+
+  if (isLoading) {
+    return (
+      <View style={styles.container}>
+        <Icon name="camera" size={48} color={colors.textSecondary} />
+        <Text style={[commonStyles.text, { marginTop: 16, textAlign: 'center' }]}>
+          Iniciando cámara...
+        </Text>
+        <Text style={[commonStyles.textSecondary, { marginTop: 8, textAlign: 'center' }]}>
+          Solicitando permisos de cámara
+        </Text>
+      </View>
+    );
+  }
+
   if (hasPermission === null) {
     return (
       <View style={styles.container}>
-        <Text style={commonStyles.text}>Solicitando permisos de cámara...</Text>
+        <Icon name="camera" size={48} color={colors.textSecondary} />
+        <Text style={[commonStyles.text, { marginTop: 16, textAlign: 'center' }]}>
+          Solicitando permisos de cámara...
+        </Text>
       </View>
     );
   }
@@ -43,8 +80,29 @@ export default function QRScanner({ onScan, onClose }: QRScannerProps) {
         <Text style={[commonStyles.text, { marginTop: 16, textAlign: 'center' }]}>
           Sin acceso a la cámara
         </Text>
-        <Text style={[commonStyles.textSecondary, { marginTop: 8, textAlign: 'center' }]}>
-          Necesitamos acceso a la cámara para escanear códigos QR
+        <Text style={[commonStyles.textSecondary, { marginTop: 8, textAlign: 'center', paddingHorizontal: 20 }]}>
+          Necesitamos acceso a la cámara para escanear códigos QR. Por favor, habilita los permisos en la configuración de la aplicación.
+        </Text>
+        <TouchableOpacity
+          style={[buttonStyles.primary, { marginTop: 20 }]}
+          onPress={onClose}
+        >
+          <Text style={buttonStyles.primaryText}>Cerrar</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  }
+
+  // Check if we're on web platform and show appropriate message
+  if (Platform.OS === 'web') {
+    return (
+      <View style={styles.container}>
+        <Icon name="monitor" size={48} color={colors.textSecondary} />
+        <Text style={[commonStyles.text, { marginTop: 16, textAlign: 'center' }]}>
+          Escáner no disponible en web
+        </Text>
+        <Text style={[commonStyles.textSecondary, { marginTop: 8, textAlign: 'center', paddingHorizontal: 20 }]}>
+          El escáner de códigos QR solo está disponible en dispositivos móviles.
         </Text>
         <TouchableOpacity
           style={[buttonStyles.primary, { marginTop: 20 }]}
@@ -92,7 +150,7 @@ export default function QRScanner({ onScan, onClose }: QRScannerProps) {
         <View style={styles.scannedContainer}>
           <TouchableOpacity
             style={[buttonStyles.primary, { backgroundColor: colors.background }]}
-            onPress={() => setScanned(false)}
+            onPress={handleScanAgain}
           >
             <Text style={[buttonStyles.primaryText, { color: colors.text }]}>
               Escanear de nuevo
