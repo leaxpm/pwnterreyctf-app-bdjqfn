@@ -51,7 +51,8 @@ export default function AdminScreen() {
   const loadAdminData = useCallback(async () => {
     try {
       setLoading(true);
-      console.log('Loading admin data for edition:', selectedEdition);
+      console.log('AdminScreen - Loading admin data for edition:', selectedEdition);
+      console.log('AdminScreen - Current user:', user?.email, 'role:', user?.role);
       
       const [speakersData, attendanceData, eventSpeakersData] = await Promise.all([
         AdminService.getSpeakers(),
@@ -59,7 +60,7 @@ export default function AdminScreen() {
         AdminService.getEventSpeakers(selectedEdition),
       ]);
 
-      console.log('Admin data loaded:', {
+      console.log('AdminScreen - Admin data loaded:', {
         speakers: speakersData.length,
         attendance: attendanceData.length,
         eventSpeakers: eventSpeakersData.length
@@ -69,30 +70,32 @@ export default function AdminScreen() {
       setAttendance(attendanceData);
       setEventSpeakers(eventSpeakersData);
     } catch (error) {
-      console.error('Error loading admin data:', error);
+      console.error('AdminScreen - Error loading admin data:', error);
       Alert.alert('Error', 'Error cargando datos del panel de administración');
     } finally {
       setLoading(false);
     }
-  }, [selectedEdition]);
+  }, [selectedEdition, user]);
 
   useEffect(() => {
-    console.log('AdminScreen mounted, user:', user?.email, 'role:', user?.role);
+    console.log('AdminScreen - Component mounted');
+    console.log('AdminScreen - User:', user?.email, 'role:', user?.role);
     
     if (!user) {
-      console.log('No user found, redirecting...');
+      console.log('AdminScreen - No user found, redirecting...');
       Alert.alert('Error', 'Debes iniciar sesión para acceder al panel de administración.');
       router.back();
       return;
     }
 
     if (user.role !== 'admin') {
-      console.log('User is not admin, redirecting...');
+      console.log('AdminScreen - User is not admin, redirecting...');
       Alert.alert('Acceso Denegado', 'No tienes permisos para acceder al panel de administración.');
       router.back();
       return;
     }
     
+    console.log('AdminScreen - User is admin, loading data...');
     loadAdminData();
   }, [user, loadAdminData]);
 
@@ -109,7 +112,7 @@ export default function AdminScreen() {
         return;
       }
 
-      console.log('Creating event:', eventForm);
+      console.log('AdminScreen - Creating event:', eventForm);
       const success = await AdminService.createEvent({
         ...eventForm,
         edition: selectedEdition,
@@ -124,7 +127,7 @@ export default function AdminScreen() {
         Alert.alert('Error', 'Error creando el evento');
       }
     } catch (error) {
-      console.error('Error creating event:', error);
+      console.error('AdminScreen - Error creating event:', error);
       Alert.alert('Error', 'Error creando el evento');
     }
   };
@@ -136,7 +139,7 @@ export default function AdminScreen() {
         return;
       }
 
-      console.log('Updating event:', editingEvent.id, eventForm);
+      console.log('AdminScreen - Updating event:', editingEvent.id, eventForm);
       const success = await AdminService.updateEvent(editingEvent.id, {
         ...eventForm,
         edition: selectedEdition,
@@ -152,7 +155,7 @@ export default function AdminScreen() {
         Alert.alert('Error', 'Error actualizando el evento');
       }
     } catch (error) {
-      console.error('Error updating event:', error);
+      console.error('AdminScreen - Error updating event:', error);
       Alert.alert('Error', 'Error actualizando el evento');
     }
   };
@@ -176,7 +179,7 @@ export default function AdminScreen() {
                 Alert.alert('Error', 'Error eliminando el evento');
               }
             } catch (error) {
-              console.error('Error deleting event:', error);
+              console.error('AdminScreen - Error deleting event:', error);
               Alert.alert('Error', 'Error eliminando el evento');
             }
           },
@@ -192,7 +195,7 @@ export default function AdminScreen() {
         return;
       }
 
-      console.log('Creating speaker:', speakerForm);
+      console.log('AdminScreen - Creating speaker:', speakerForm);
       const success = await AdminService.createSpeaker(speakerForm);
 
       if (success) {
@@ -204,7 +207,7 @@ export default function AdminScreen() {
         Alert.alert('Error', 'Error creando el speaker');
       }
     } catch (error) {
-      console.error('Error creating speaker:', error);
+      console.error('AdminScreen - Error creating speaker:', error);
       Alert.alert('Error', 'Error creando el speaker');
     }
   };
@@ -216,7 +219,7 @@ export default function AdminScreen() {
         return;
       }
 
-      console.log('Updating speaker:', editingSpeaker.id, speakerForm);
+      console.log('AdminScreen - Updating speaker:', editingSpeaker.id, speakerForm);
       const success = await AdminService.updateSpeaker(editingSpeaker.id, speakerForm);
 
       if (success) {
@@ -229,14 +232,14 @@ export default function AdminScreen() {
         Alert.alert('Error', 'Error actualizando el speaker');
       }
     } catch (error) {
-      console.error('Error updating speaker:', error);
+      console.error('AdminScreen - Error updating speaker:', error);
       Alert.alert('Error', 'Error actualizando el speaker');
     }
   };
 
   const handleToggleAttendance = async (eventId: string, userId: string, currentStatus: boolean) => {
     try {
-      console.log('Toggling attendance:', eventId, userId, !currentStatus);
+      console.log('AdminScreen - Toggling attendance:', eventId, userId, !currentStatus);
       const success = await AdminService.updateAttendance(eventId, userId, !currentStatus);
       
       if (success) {
@@ -245,14 +248,14 @@ export default function AdminScreen() {
         Alert.alert('Error', 'Error actualizando la asistencia');
       }
     } catch (error) {
-      console.error('Error toggling attendance:', error);
+      console.error('AdminScreen - Error toggling attendance:', error);
       Alert.alert('Error', 'Error actualizando la asistencia');
     }
   };
 
   const handleToggleSpeakerAttendance = async (eventId: string, speakerId: string, currentStatus: boolean) => {
     try {
-      console.log('Toggling speaker attendance:', eventId, speakerId, !currentStatus);
+      console.log('AdminScreen - Toggling speaker attendance:', eventId, speakerId, !currentStatus);
       const success = await AdminService.updateSpeakerAttendance(eventId, speakerId, !currentStatus);
       
       if (success) {
@@ -261,7 +264,7 @@ export default function AdminScreen() {
         Alert.alert('Error', 'Error actualizando la asistencia del speaker');
       }
     } catch (error) {
-      console.error('Error toggling speaker attendance:', error);
+      console.error('AdminScreen - Error toggling speaker attendance:', error);
       Alert.alert('Error', 'Error actualizando la asistencia del speaker');
     }
   };

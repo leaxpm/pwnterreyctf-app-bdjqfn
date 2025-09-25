@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Alert } from 'react-native';
 import { colors, commonStyles } from '../styles/commonStyles';
 import Icon from './Icon';
 import SimpleBottomSheet from './BottomSheet';
@@ -30,14 +30,44 @@ export default function TopBar({
   const isAdmin = user?.role === 'admin';
 
   const handleAdminPress = () => {
-    console.log('Admin button pressed, user role:', user?.role);
-    if (onAdminPress) {
-      onAdminPress();
-    } else {
-      console.log('Navigating to admin panel...');
-      router.push('/admin');
-    }
+    console.log('TopBar - Admin button pressed');
+    
+    // Show alert for debugging
+    Alert.alert(
+      'Admin Button Pressed',
+      `User: ${user?.email || 'No user'}\nRole: ${user?.role || 'No role'}\nIs Admin: ${isAdmin}`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        { 
+          text: 'Go to Admin', 
+          onPress: () => {
+            if (!user) {
+              Alert.alert('Error', 'No user found');
+              return;
+            }
+            
+            if (user.role !== 'admin') {
+              Alert.alert('Error', `User is not admin. Role: ${user.role}`);
+              return;
+            }
+
+            if (onAdminPress) {
+              onAdminPress();
+            } else {
+              try {
+                router.push('/admin');
+              } catch (error) {
+                Alert.alert('Navigation Error', `Error: ${error}`);
+              }
+            }
+          }
+        }
+      ]
+    );
   };
+
+  // Always show admin button for testing
+  const shouldShowAdminButton = showAdminButton;
 
   return (
     <>
@@ -54,13 +84,13 @@ export default function TopBar({
             <Icon name="chevron-down" size={16} color={colors.text} />
           </TouchableOpacity>
 
-          {/* Admin Button - Show if user is admin */}
-          {isAdmin && (
+          {/* Admin Button - Always show for testing */}
+          {shouldShowAdminButton && (
             <TouchableOpacity 
-              style={styles.adminButton}
+              style={[styles.adminButton, { backgroundColor: isAdmin ? colors.primary : colors.warning }]}
               onPress={handleAdminPress}
             >
-              <Icon name="settings" size={20} color={colors.text} />
+              <Icon name="settings" size={20} color={colors.background} />
             </TouchableOpacity>
           )}
         </View>
@@ -139,7 +169,7 @@ const styles = StyleSheet.create({
   adminButton: {
     padding: 8,
     borderRadius: 8,
-    backgroundColor: colors.surface,
+    backgroundColor: colors.primary,
   },
   bottomSheetContent: {
     padding: 20,

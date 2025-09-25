@@ -24,7 +24,7 @@ export const useAuth = () => {
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
-        console.log('Auth state changed:', event);
+        console.log('useAuth - Auth state changed:', event);
         
         if (event === 'SIGNED_IN' && session?.user) {
           await loadUserData(session.user.id);
@@ -59,12 +59,16 @@ export const useAuth = () => {
         setUser(currentUser);
         const stats = await UserService.getUserStats(currentUser.id);
         setUserStats(stats);
-        console.log('useAuth - User loaded successfully:', currentUser.email);
+        console.log('useAuth - User loaded successfully:', {
+          email: currentUser.email,
+          role: currentUser.role,
+          id: currentUser.id
+        });
       } else {
         console.log('useAuth - No user found');
       }
     } catch (err) {
-      console.error('Error checking user:', err);
+      console.error('useAuth - Error checking user:', err);
       setError('Error loading user data');
     } finally {
       setLoading(false);
@@ -73,6 +77,7 @@ export const useAuth = () => {
 
   const loadUserData = async (userId: string) => {
     try {
+      console.log('useAuth - Loading user data for:', userId);
       // Add a small delay to ensure the trigger has time to create the profile
       await new Promise(resolve => setTimeout(resolve, 1000));
       
@@ -81,9 +86,14 @@ export const useAuth = () => {
         setUser(userData);
         const stats = await UserService.getUserStats(userId);
         setUserStats(stats);
+        console.log('useAuth - User data loaded:', {
+          email: userData.email,
+          role: userData.role,
+          id: userData.id
+        });
       }
     } catch (err) {
-      console.error('Error loading user data:', err);
+      console.error('useAuth - Error loading user data:', err);
       setError('Error loading user data');
     }
   };
@@ -91,7 +101,7 @@ export const useAuth = () => {
   const signUp = async (email: string, password: string, name: string) => {
     try {
       setError(null);
-      console.log('Signing up user:', email);
+      console.log('useAuth - Signing up user:', email);
       
       const { data, error } = await supabase.auth.signUp({
         email,
@@ -105,13 +115,13 @@ export const useAuth = () => {
       });
 
       if (error) {
-        console.error('Sign up error:', error);
+        console.error('useAuth - Sign up error:', error);
         setError(error.message);
         return { success: false, message: error.message };
       }
 
       if (data.user) {
-        console.log('Auth user created successfully');
+        console.log('useAuth - Auth user created successfully');
         
         // For email verification flow, we don't need to wait for profile creation
         // The user will be created when they verify their email
@@ -124,7 +134,7 @@ export const useAuth = () => {
 
       return { success: false, message: 'Error creating user account' };
     } catch (err) {
-      console.error('Error in signUp:', err);
+      console.error('useAuth - Error in signUp:', err);
       const errorMessage = err instanceof Error ? err.message : 'Error creating account';
       setError(errorMessage);
       return { success: false, message: errorMessage };
@@ -134,7 +144,7 @@ export const useAuth = () => {
   const signIn = async (email: string, password: string) => {
     try {
       setError(null);
-      console.log('Signing in user:', email);
+      console.log('useAuth - Signing in user:', email);
       
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
@@ -142,20 +152,20 @@ export const useAuth = () => {
       });
 
       if (error) {
-        console.error('Sign in error:', error);
+        console.error('useAuth - Sign in error:', error);
         setError(error.message);
         return { success: false, message: error.message };
       }
 
       if (data.user) {
         await loadUserData(data.user.id);
-        console.log('User signed in successfully');
+        console.log('useAuth - User signed in successfully');
         return { success: true, message: 'Sesión iniciada exitosamente' };
       }
 
       return { success: false, message: 'Error signing in' };
     } catch (err) {
-      console.error('Error in signIn:', err);
+      console.error('useAuth - Error in signIn:', err);
       const errorMessage = err instanceof Error ? err.message : 'Error signing in';
       setError(errorMessage);
       return { success: false, message: errorMessage };
@@ -165,12 +175,12 @@ export const useAuth = () => {
   const signOut = async () => {
     try {
       setError(null);
-      console.log('Signing out user');
+      console.log('useAuth - Signing out user');
       
       const { error } = await supabase.auth.signOut();
       
       if (error) {
-        console.error('Sign out error:', error);
+        console.error('useAuth - Sign out error:', error);
         setError(error.message);
         return false;
       }
@@ -184,10 +194,10 @@ export const useAuth = () => {
         profileComplete: false,
       });
       
-      console.log('User signed out successfully');
+      console.log('useAuth - User signed out successfully');
       return true;
     } catch (err) {
-      console.error('Error in signOut:', err);
+      console.error('useAuth - Error in signOut:', err);
       setError('Error signing out');
       return false;
     }
@@ -202,19 +212,19 @@ export const useAuth = () => {
         return false;
       }
 
-      console.log('Updating user profile');
+      console.log('useAuth - Updating user profile');
       
       const updatedUser = await UserService.updateUser(user.id, updates);
       
       if (updatedUser) {
         setUser(updatedUser);
-        console.log('Profile updated successfully');
+        console.log('useAuth - Profile updated successfully');
         return true;
       }
 
       return false;
     } catch (err) {
-      console.error('Error updating profile:', err);
+      console.error('useAuth - Error updating profile:', err);
       setError('Error updating profile');
       return false;
     }
@@ -225,24 +235,24 @@ export const useAuth = () => {
       setError(null);
       
       if (!user) {
-        console.log('No user logged in, updating stats locally');
+        console.log('useAuth - No user logged in, updating stats locally');
         setUserStats(newStats);
         return true;
       }
 
-      console.log('Updating user stats');
+      console.log('useAuth - Updating user stats');
       
       const success = await UserService.updateUserStats(user.id, newStats);
       
       if (success) {
         setUserStats(newStats);
-        console.log('Stats updated successfully');
+        console.log('useAuth - Stats updated successfully');
         return true;
       }
 
       return false;
     } catch (err) {
-      console.error('Error updating stats:', err);
+      console.error('useAuth - Error updating stats:', err);
       setError('Error updating stats');
       return false;
     }

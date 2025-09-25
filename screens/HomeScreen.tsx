@@ -13,7 +13,7 @@ import EventCard from '../components/EventCard';
 export default function HomeScreen() {
   const [selectedEdition, setSelectedEdition] = useState(2025);
   const { events, toggleFavorite, loading, error, refreshEvents } = useEvents(selectedEdition);
-  const { userStats, updateStats } = useAuth();
+  const { user, userStats, updateStats } = useAuth();
   const [activeFilter, setActiveFilter] = useState('Todos');
   const [refreshing, setRefreshing] = useState(false);
 
@@ -22,7 +22,8 @@ export default function HomeScreen() {
     eventsCount: events.length,
     loading,
     error,
-    activeFilter
+    activeFilter,
+    user: user ? { id: user.id, email: user.email, role: user.role } : null
   });
 
   const filters = [
@@ -40,7 +41,7 @@ export default function HomeScreen() {
   };
 
   const handleRegister = async (eventId: string) => {
-    console.log('Registering for event:', eventId);
+    console.log('HomeScreen - Registering for event:', eventId);
     
     const event = events.find(e => e.id === eventId);
     if (!event) return;
@@ -73,6 +74,12 @@ export default function HomeScreen() {
     setRefreshing(false);
   };
 
+  const handleAdminPress = () => {
+    console.log('HomeScreen - Admin button pressed');
+    console.log('HomeScreen - Current user:', user ? { id: user.id, email: user.email, role: user.role } : null);
+    // The TopBar will handle the navigation
+  };
+
   if (loading && events.length === 0) {
     return (
       <SafeAreaView style={commonStyles.container}>
@@ -90,7 +97,24 @@ export default function HomeScreen() {
         selectedEdition={selectedEdition}
         onEditionChange={setSelectedEdition}
         showAdminButton={true}
+        onAdminPress={handleAdminPress}
       />
+
+      {/* Debug Info - Remove after testing */}
+      {user && (
+        <View style={{
+          backgroundColor: colors.info + '20',
+          margin: 20,
+          padding: 12,
+          borderRadius: 8,
+          borderLeftWidth: 4,
+          borderLeftColor: colors.info,
+        }}>
+          <Text style={{ color: colors.info, fontSize: 12 }}>
+            Debug: User {user.email} - Role: {user.role} - ID: {user.id.slice(0, 8)}...
+          </Text>
+        </View>
+      )}
 
       {error && (
         <View style={{
