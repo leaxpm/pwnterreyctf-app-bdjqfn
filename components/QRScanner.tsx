@@ -1,7 +1,7 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, TouchableOpacity, Alert, StyleSheet, Platform } from 'react-native';
-import { BarCodeScanner } from 'expo-barcode-scanner';
+import { CameraView, Camera } from 'expo-camera';
 import { colors, commonStyles, buttonStyles } from '../styles/commonStyles';
 import Icon from './Icon';
 
@@ -14,12 +14,13 @@ export default function QRScanner({ onScan, onClose }: QRScannerProps) {
   const [hasPermission, setHasPermission] = useState<boolean | null>(null);
   const [scanned, setScanned] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const cameraRef = useRef<CameraView>(null);
 
   useEffect(() => {
-    const getBarCodeScannerPermissions = async () => {
+    const getCameraPermissions = async () => {
       try {
         console.log('Requesting camera permissions...');
-        const { status } = await BarCodeScanner.requestPermissionsAsync();
+        const { status } = await Camera.requestCameraPermissionsAsync();
         console.log('Camera permission status:', status);
         setHasPermission(status === 'granted');
       } catch (error) {
@@ -34,10 +35,10 @@ export default function QRScanner({ onScan, onClose }: QRScannerProps) {
       }
     };
 
-    getBarCodeScannerPermissions();
+    getCameraPermissions();
   }, []);
 
-  const handleBarCodeScanned = ({ type, data }: { type: string; data: string }) => {
+  const handleBarcodeScanned = ({ type, data }: { type: string; data: string }) => {
     console.log('QR Code scanned:', { type, data });
     setScanned(true);
     onScan(data);
@@ -127,9 +128,14 @@ export default function QRScanner({ onScan, onClose }: QRScannerProps) {
       </View>
 
       <View style={styles.scannerContainer}>
-        <BarCodeScanner
-          onBarCodeScanned={scanned ? undefined : handleBarCodeScanned}
+        <CameraView
+          ref={cameraRef}
           style={StyleSheet.absoluteFillObject}
+          facing="back"
+          barcodeScannerSettings={{
+            barcodeTypes: ['qr', 'pdf417'],
+          }}
+          onBarcodeScanned={scanned ? undefined : handleBarcodeScanned}
         />
         
         <View style={styles.overlay}>
