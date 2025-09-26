@@ -1,4 +1,5 @@
 
+
 import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, TextInput, Alert, RefreshControl, Modal } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -438,14 +439,14 @@ export default function AdminScreen({ onClose }: AdminScreenProps) {
         {/* Header */}
         <View style={commonStyles.header}>
           <TouchableOpacity onPress={handleClose}>
-            <Icon name="arrow-left" size={24} color={colors.text} />
+            <Icon name="arrow-back-circle" size={24} color={colors.text} />
           </TouchableOpacity>
           <Text style={commonStyles.title}>Panel de Admin</Text>
           <View style={{ width: 24 }} />
         </View>
         
         <View style={[commonStyles.container, { justifyContent: 'center', alignItems: 'center' }]}>
-          <Icon name="user" size={64} color={colors.textSecondary} />
+          <Icon name="person" size={64} color={colors.textSecondary} />
           <Text style={[commonStyles.text, { marginTop: 16, textAlign: 'center' }]}>
             Verificando permisos...
           </Text>
@@ -463,14 +464,14 @@ export default function AdminScreen({ onClose }: AdminScreenProps) {
         {/* Header */}
         <View style={commonStyles.header}>
           <TouchableOpacity onPress={handleClose}>
-            <Icon name="arrow-left-circle" size={24} color={colors.text} />
+            <Icon name="arrow-back-circle" size={24} color={colors.text} />
           </TouchableOpacity>
           <Text style={commonStyles.title}>Panel de Admin</Text>
           <View style={{ width: 24 }} />
         </View>
         
         <View style={[commonStyles.container, { justifyContent: 'center', alignItems: 'center' }]}>
-          <Icon name="shield-off" size={64} color={colors.textSecondary} />
+          <Icon name="shield-outline" size={64} color={colors.textSecondary} />
           <Text style={[commonStyles.text, { marginTop: 16, textAlign: 'center' }]}>
             Acceso Denegado
           </Text>
@@ -493,15 +494,15 @@ export default function AdminScreen({ onClose }: AdminScreenProps) {
       {/* Header */}
       <View style={commonStyles.header}>
         <TouchableOpacity onPress={handleClose}>
-          <Icon name="arrow-left-circle" size={24} color={colors.text} />
+          <Icon name="arrow-back-circle" size={24} color={colors.text} />
         </TouchableOpacity>
         <Text style={commonStyles.title}>Panel de Admin</Text>
         <View style={{ flexDirection: 'row', gap: 12 }}>
           <TouchableOpacity onPress={() => setShowQRGenerator(true)}>
-            <Icon name="qr-code" size={24} color={colors.text} />
+            <Icon name="qr-code-outline" size={24} color={colors.text} />
           </TouchableOpacity>
           <TouchableOpacity onPress={() => setShowQRScanner(true)}>
-            <Icon name="camera" size={24} color={colors.text} />
+            <Icon name="camera-outline" size={24} color={colors.text} />
           </TouchableOpacity>
         </View>
       </View>
@@ -537,9 +538,9 @@ export default function AdminScreen({ onClose }: AdminScreenProps) {
       {/* Tabs */}
       <View style={{ flexDirection: 'row', padding: 20, paddingBottom: 0 }}>
         {[
-          { key: 'events', label: 'Eventos', icon: 'calendar' },
-          { key: 'attendance', label: 'Asistencia', icon: 'users' },
-          { key: 'speakers', label: 'Speakers', icon: 'mic' },
+          { key: 'events', label: 'Eventos', icon: 'calendar-outline' },
+          { key: 'attendance', label: 'Asistencia', icon: 'people-outline' },
+          { key: 'speakers', label: 'Speakers', icon: 'mic-outline' },
         ].map((tab) => (
           <TouchableOpacity
             key={tab.key}
@@ -594,7 +595,7 @@ export default function AdminScreen({ onClose }: AdminScreenProps) {
                   setShowEventForm(true);
                 }}
               >
-                <Icon name="plus-square-o" size={16} color={colors.background} />
+                <Icon name="add-circle-outline" size={16} color={colors.background} />
                 <Text style={[buttonStyles.primaryText, { marginLeft: 6 }]}>Crear</Text>
               </TouchableOpacity>
             </View>
@@ -628,13 +629,13 @@ export default function AdminScreen({ onClose }: AdminScreenProps) {
                       style={{ padding: 8 }}
                       onPress={() => openEditEvent(event)}
                     >
-                      <Icon name="edit-2" size={16} color={colors.primary} />
+                      <Icon name="create-outline" size={16} color={colors.primary} />
                     </TouchableOpacity>
                     <TouchableOpacity
                       style={{ padding: 8 }}
                       onPress={() => handleDeleteEvent(event.id)}
                     >
-                      <Icon name="trash-2" size={16} color={colors.error} />
+                      <Icon name="trash-outline" size={16} color={colors.error} />
                     </TouchableOpacity>
                   </View>
                 </View>
@@ -643,7 +644,7 @@ export default function AdminScreen({ onClose }: AdminScreenProps) {
 
             {filteredEvents.length === 0 && (
               <View style={{ alignItems: 'center', paddingVertical: 40 }}>
-                <Icon name="calendar" size={48} color={colors.textSecondary} />
+                <Icon name="calendar-outline" size={48} color={colors.textSecondary} />
                 <Text style={[commonStyles.textSecondary, { marginTop: 16 }]}>
                   No hay eventos para la edición {selectedEdition}
                 </Text>
@@ -662,14 +663,14 @@ export default function AdminScreen({ onClose }: AdminScreenProps) {
                   style={[buttonStyles.secondary]}
                   onPress={() => setShowQRGenerator(true)}
                 >
-                  <Icon name="qr-code" size={16} color={colors.text} />
+                  <Icon name="qr-code-outline" size={16} color={colors.text} />
                   <Text style={[buttonStyles.secondaryText, { marginLeft: 6 }]}>Generar</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
                   style={[buttonStyles.primary, { backgroundColor: colors.success }]}
                   onPress={() => setShowQRScanner(true)}
                 >
-                  <Icon name="camera" size={16} color={colors.background} />
+                  <Icon name="camera-outline" size={16} color={colors.background} />
                   <Text style={[buttonStyles.primaryText, { marginLeft: 6 }]}>Escanear</Text>
                 </TouchableOpacity>
               </View>
@@ -798,7 +799,7 @@ export default function AdminScreen({ onClose }: AdminScreenProps) {
 
             {filteredEvents.length === 0 && (
               <View style={{ alignItems: 'center', paddingVertical: 40 }}>
-                <Icon name="users" size={48} color={colors.textSecondary} />
+                <Icon name="people-outline" size={48} color={colors.textSecondary} />
                 <Text style={[commonStyles.textSecondary, { marginTop: 16 }]}>
                   No hay eventos para la edición {selectedEdition}
                 </Text>
@@ -820,7 +821,7 @@ export default function AdminScreen({ onClose }: AdminScreenProps) {
                   setShowSpeakerForm(true);
                 }}
               >
-                <Icon name="plus" size={16} color={colors.background} />
+                <Icon name="add" size={16} color={colors.background} />
                 <Text style={[buttonStyles.primaryText, { marginLeft: 6 }]}>Crear</Text>
               </TouchableOpacity>
             </View>
@@ -853,13 +854,13 @@ export default function AdminScreen({ onClose }: AdminScreenProps) {
                       style={{ padding: 8 }}
                       onPress={() => openEditSpeaker(speaker)}
                     >
-                      <Icon name="edit-2" size={16} color={colors.primary} />
+                      <Icon name="create-outline" size={16} color={colors.primary} />
                     </TouchableOpacity>
                     <TouchableOpacity
                       style={{ padding: 8 }}
                       onPress={() => handleDeleteSpeaker(speaker.id)}
                     >
-                      <Icon name="trash-2" size={16} color={colors.error} />
+                      <Icon name="trash-outline" size={16} color={colors.error} />
                     </TouchableOpacity>
                   </View>
                 </View>
@@ -868,7 +869,7 @@ export default function AdminScreen({ onClose }: AdminScreenProps) {
 
             {speakers.length === 0 && (
               <View style={{ alignItems: 'center', paddingVertical: 40 }}>
-                <Icon name="mic" size={48} color={colors.textSecondary} />
+                <Icon name="mic-outline" size={48} color={colors.textSecondary} />
                 <Text style={[commonStyles.textSecondary, { marginTop: 16 }]}>
                   No hay speakers registrados
                 </Text>
@@ -1112,3 +1113,4 @@ export default function AdminScreen({ onClose }: AdminScreenProps) {
     </SafeAreaView>
   );
 }
+
