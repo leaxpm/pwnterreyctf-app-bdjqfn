@@ -278,7 +278,7 @@ export default function ProfileScreen() {
                     setIsEditing(true);
                   }}
                 >
-                  <Icon name="edit-2" size={16} color={colors.text} />
+                  <Icon name="edit" size={16} color={colors.text} />
                   <Text style={[buttonStyles.secondaryText, { marginLeft: 8 }]}>
                     Editar
                   </Text>

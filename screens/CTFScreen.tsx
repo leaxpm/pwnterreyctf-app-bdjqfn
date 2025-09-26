@@ -20,7 +20,9 @@ const CTFScreen: React.FC = () => {
   };
 
   const handleAdminPress = () => {
-    router.push('/admin');
+    if (onShowAdmin) {
+      onShowAdmin();
+    }
   };
 
   return (

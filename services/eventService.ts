@@ -57,6 +57,50 @@ export class EventService {
     }
   }
 
+  static async getEvent(eventId: string): Promise<Event | null> {
+    try {
+      console.log('EventService - Fetching event by ID:', eventId);
+      
+      const { data, error } = await supabase
+        .from('events')
+        .select('*')
+        .eq('id', eventId)
+        .single();
+
+      if (error) {
+        console.error('EventService - Error fetching event:', error);
+        throw error;
+      }
+
+      if (!data) {
+        console.log('EventService - Event not found');
+        return null;
+      }
+
+      // Get current user to check favorites
+      const { data: { user } } = await supabase.auth.getUser();
+      let userFavorites: string[] = [];
+
+      if (user) {
+        const { data: favoritesData } = await supabase
+          .from('user_favorites')
+          .select('event_id')
+          .eq('user_id', user.id)
+          .eq('event_id', eventId);
+        
+        userFavorites = favoritesData?.map(fav => fav.event_id) || [];
+      }
+
+      const mappedEvent = this.mapSupabaseEventToEvent(data, userFavorites);
+      console.log('EventService - Event fetched successfully:', mappedEvent.title);
+      
+      return mappedEvent;
+    } catch (error) {
+      console.error('EventService - Error in getEvent:', error);
+      return null;
+    }
+  }
+
   static async getEventsByType(type: Event['type']): Promise<Event[]> {
     try {
       console.log(`Fetching events of type: ${type}`);
@@ -96,6 +140,7 @@ export class EventService {
           location: event.location,
           description: event.description,
           date: event.date,
+          registration_url: event.registrationUrl,
         })
         .select()
         .single();
@@ -129,6 +174,7 @@ export class EventService {
           ...(updates.location && { location: updates.location }),
           ...(updates.description && { description: updates.description }),
           ...(updates.date && { date: updates.date }),
+          ...(updates.registrationUrl !== undefined && { registration_url: updates.registrationUrl }),
           updated_at: new Date().toISOString(),
         })
         .eq('id', eventId)
@@ -247,6 +293,7 @@ export class EventService {
       date: supabaseEvent.date,
       edition: supabaseEvent.edition || 2025,
       isFavorite: userFavorites.includes(supabaseEvent.id),
+      registrationUrl: supabaseEvent.registration_url,
     };
   }
 }

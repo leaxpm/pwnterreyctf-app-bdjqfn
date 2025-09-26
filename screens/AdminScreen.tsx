@@ -44,6 +44,7 @@ export default function AdminScreen({ onClose }: AdminScreenProps) {
     description: '',
     date: '',
     edition: selectedEdition,
+    registrationUrl: '',
   });
 
   // Speaker form state
@@ -57,6 +58,7 @@ export default function AdminScreen({ onClose }: AdminScreenProps) {
 
   const loadAdminData = useCallback(async () => {
     try {
+      console.log('AdminScreen - Loading admin data for edition:', selectedEdition);
       setLoading(true);
       
       const [speakersData, attendanceData, eventSpeakersData] = await Promise.all([
@@ -68,7 +70,9 @@ export default function AdminScreen({ onClose }: AdminScreenProps) {
       setSpeakers(speakersData);
       setAttendance(attendanceData);
       setEventSpeakers(eventSpeakersData);
+      console.log('AdminScreen - Admin data loaded successfully');
     } catch (error) {
+      console.error('AdminScreen - Error loading admin data:', error);
       Alert.alert('Error', 'Error cargando datos del panel de administración');
     } finally {
       setLoading(false);
@@ -76,12 +80,16 @@ export default function AdminScreen({ onClose }: AdminScreenProps) {
   }, [selectedEdition, user]);
 
   useEffect(() => {
-    if (user) {
+    if (user && user.role === 'admin') {
+      console.log('AdminScreen - User is admin, loading data');
       loadAdminData();
+    } else {
+      console.log('AdminScreen - User is not admin or not loaded:', user ? { email: user.email, role: user.role } : 'No user');
     }
   }, [user, loadAdminData]);
 
   const onRefresh = async () => {
+    console.log('AdminScreen - Refreshing data');
     setRefreshing(true);
     await Promise.all([refreshEvents(), loadAdminData()]);
     setRefreshing(false);
@@ -89,8 +97,10 @@ export default function AdminScreen({ onClose }: AdminScreenProps) {
 
   const handleCreateEvent = async () => {
     try {
+      console.log('AdminScreen - Creating event:', eventForm.title);
+      
       if (!eventForm.title || !eventForm.date || !eventForm.startTime) {
-        Alert.alert('Error', 'Por favor completa los campos requeridos');
+        Alert.alert('Error', 'Por favor completa los campos requeridos (título, fecha, hora de inicio)');
         return;
       }
 
@@ -108,14 +118,17 @@ export default function AdminScreen({ onClose }: AdminScreenProps) {
         Alert.alert('Error', 'Error creando el evento');
       }
     } catch (error) {
+      console.error('AdminScreen - Error creating event:', error);
       Alert.alert('Error', 'Error creando el evento');
     }
   };
 
   const handleUpdateEvent = async () => {
     try {
+      console.log('AdminScreen - Updating event:', editingEvent?.id);
+      
       if (!editingEvent || !eventForm.title || !eventForm.date || !eventForm.startTime) {
-        Alert.alert('Error', 'Por favor completa los campos requeridos');
+        Alert.alert('Error', 'Por favor completa los campos requeridos (título, fecha, hora de inicio)');
         return;
       }
 
@@ -134,6 +147,7 @@ export default function AdminScreen({ onClose }: AdminScreenProps) {
         Alert.alert('Error', 'Error actualizando el evento');
       }
     } catch (error) {
+      console.error('AdminScreen - Error updating event:', error);
       Alert.alert('Error', 'Error actualizando el evento');
     }
   };
@@ -149,6 +163,7 @@ export default function AdminScreen({ onClose }: AdminScreenProps) {
           style: 'destructive',
           onPress: async () => {
             try {
+              console.log('AdminScreen - Deleting event:', eventId);
               const success = await AdminService.deleteEvent(eventId);
               if (success) {
                 Alert.alert('Éxito', 'Evento eliminado exitosamente');
@@ -157,6 +172,7 @@ export default function AdminScreen({ onClose }: AdminScreenProps) {
                 Alert.alert('Error', 'Error eliminando el evento');
               }
             } catch (error) {
+              console.error('AdminScreen - Error deleting event:', error);
               Alert.alert('Error', 'Error eliminando el evento');
             }
           },
@@ -167,6 +183,8 @@ export default function AdminScreen({ onClose }: AdminScreenProps) {
 
   const handleCreateSpeaker = async () => {
     try {
+      console.log('AdminScreen - Creating speaker:', speakerForm.name);
+      
       if (!speakerForm.name) {
         Alert.alert('Error', 'El nombre del speaker es requerido');
         return;
@@ -183,12 +201,15 @@ export default function AdminScreen({ onClose }: AdminScreenProps) {
         Alert.alert('Error', 'Error creando el speaker');
       }
     } catch (error) {
+      console.error('AdminScreen - Error creating speaker:', error);
       Alert.alert('Error', 'Error creando el speaker');
     }
   };
 
   const handleUpdateSpeaker = async () => {
     try {
+      console.log('AdminScreen - Updating speaker:', editingSpeaker?.id);
+      
       if (!editingSpeaker || !speakerForm.name) {
         Alert.alert('Error', 'El nombre del speaker es requerido');
         return;
@@ -206,6 +227,7 @@ export default function AdminScreen({ onClose }: AdminScreenProps) {
         Alert.alert('Error', 'Error actualizando el speaker');
       }
     } catch (error) {
+      console.error('AdminScreen - Error updating speaker:', error);
       Alert.alert('Error', 'Error actualizando el speaker');
     }
   };
@@ -221,6 +243,7 @@ export default function AdminScreen({ onClose }: AdminScreenProps) {
           style: 'destructive',
           onPress: async () => {
             try {
+              console.log('AdminScreen - Deleting speaker:', speakerId);
               const success = await AdminService.deleteSpeaker(speakerId);
               if (success) {
                 Alert.alert('Éxito', 'Speaker eliminado exitosamente');
@@ -229,6 +252,7 @@ export default function AdminScreen({ onClose }: AdminScreenProps) {
                 Alert.alert('Error', 'Error eliminando el speaker');
               }
             } catch (error) {
+              console.error('AdminScreen - Error deleting speaker:', error);
               Alert.alert('Error', 'Error eliminando el speaker');
             }
           },
@@ -239,6 +263,7 @@ export default function AdminScreen({ onClose }: AdminScreenProps) {
 
   const handleToggleAttendance = async (eventId: string, userId: string, currentStatus: boolean) => {
     try {
+      console.log('AdminScreen - Toggling attendance:', { eventId, userId, currentStatus });
       const success = await AdminService.updateAttendance(eventId, userId, !currentStatus);
       
       if (success) {
@@ -247,12 +272,14 @@ export default function AdminScreen({ onClose }: AdminScreenProps) {
         Alert.alert('Error', 'Error actualizando la asistencia');
       }
     } catch (error) {
+      console.error('AdminScreen - Error toggling attendance:', error);
       Alert.alert('Error', 'Error actualizando la asistencia');
     }
   };
 
   const handleToggleSpeakerAttendance = async (eventId: string, speakerId: string, currentStatus: boolean) => {
     try {
+      console.log('AdminScreen - Toggling speaker attendance:', { eventId, speakerId, currentStatus });
       const success = await AdminService.updateSpeakerAttendance(eventId, speakerId, !currentStatus);
       
       if (success) {
@@ -261,12 +288,14 @@ export default function AdminScreen({ onClose }: AdminScreenProps) {
         Alert.alert('Error', 'Error actualizando la asistencia del speaker');
       }
     } catch (error) {
+      console.error('AdminScreen - Error toggling speaker attendance:', error);
       Alert.alert('Error', 'Error actualizando la asistencia del speaker');
     }
   };
 
   const handleQRScan = async (data: string) => {
     try {
+      console.log('AdminScreen - QR scanned:', data);
       setShowQRScanner(false);
       
       // Check if it's an email (user QR code)
@@ -332,6 +361,7 @@ export default function AdminScreen({ onClose }: AdminScreenProps) {
         }
       }
     } catch (error) {
+      console.error('AdminScreen - Error processing QR:', error);
       Alert.alert('Error', 'Error procesando código QR');
     }
   };
@@ -347,6 +377,7 @@ export default function AdminScreen({ onClose }: AdminScreenProps) {
       description: '',
       date: '',
       edition: selectedEdition,
+      registrationUrl: '',
     });
   };
 
@@ -361,6 +392,7 @@ export default function AdminScreen({ onClose }: AdminScreenProps) {
   };
 
   const openEditEvent = (event: Event) => {
+    console.log('AdminScreen - Opening edit event:', event.title);
     setEditingEvent(event);
     setEventForm({
       title: event.title,
@@ -372,11 +404,13 @@ export default function AdminScreen({ onClose }: AdminScreenProps) {
       description: event.description,
       date: event.date,
       edition: event.edition,
+      registrationUrl: event.registrationUrl || '',
     });
     setShowEventForm(true);
   };
 
   const openEditSpeaker = (speaker: Speaker) => {
+    console.log('AdminScreen - Opening edit speaker:', speaker.name);
     setEditingSpeaker(speaker);
     setSpeakerForm({
       name: speaker.name,
@@ -389,6 +423,7 @@ export default function AdminScreen({ onClose }: AdminScreenProps) {
   };
 
   const handleClose = () => {
+    console.log('AdminScreen - Closing admin panel');
     if (onClose) {
       onClose();
     }
@@ -428,7 +463,7 @@ export default function AdminScreen({ onClose }: AdminScreenProps) {
         {/* Header */}
         <View style={commonStyles.header}>
           <TouchableOpacity onPress={handleClose}>
-            <Icon name="arrow-left" size={24} color={colors.text} />
+            <Icon name="arrow-left-circle" size={24} color={colors.text} />
           </TouchableOpacity>
           <Text style={commonStyles.title}>Panel de Admin</Text>
           <View style={{ width: 24 }} />
@@ -458,7 +493,7 @@ export default function AdminScreen({ onClose }: AdminScreenProps) {
       {/* Header */}
       <View style={commonStyles.header}>
         <TouchableOpacity onPress={handleClose}>
-          <Icon name="arrow-left" size={24} color={colors.text} />
+          <Icon name="arrow-left-circle" size={24} color={colors.text} />
         </TouchableOpacity>
         <Text style={commonStyles.title}>Panel de Admin</Text>
         <View style={{ flexDirection: 'row', gap: 12 }}>
@@ -559,7 +594,7 @@ export default function AdminScreen({ onClose }: AdminScreenProps) {
                   setShowEventForm(true);
                 }}
               >
-                <Icon name="plus" size={16} color={colors.background} />
+                <Icon name="plus-square-o" size={16} color={colors.background} />
                 <Text style={[buttonStyles.primaryText, { marginLeft: 6 }]}>Crear</Text>
               </TouchableOpacity>
             </View>
@@ -579,9 +614,14 @@ export default function AdminScreen({ onClose }: AdminScreenProps) {
                     <Text style={[commonStyles.textSecondary, { marginBottom: 8 }]}>
                       {event.type} • {event.date} • {event.startTime}
                     </Text>
-                    <Text style={[commonStyles.textSecondary, { fontSize: 14 }]}>
+                    <Text style={[commonStyles.textSecondary, { fontSize: 14, marginBottom: 4 }]}>
                       {event.location}
                     </Text>
+                    {event.registrationUrl && (
+                      <Text style={[commonStyles.textSecondary, { fontSize: 12, fontStyle: 'italic' }]}>
+                        URL: {event.registrationUrl.length > 40 ? event.registrationUrl.substring(0, 40) + '...' : event.registrationUrl}
+                      </Text>
+                    )}
                   </View>
                   <View style={{ flexDirection: 'row', gap: 8 }}>
                     <TouchableOpacity
@@ -872,7 +912,7 @@ export default function AdminScreen({ onClose }: AdminScreenProps) {
           resetEventForm();
         }}
       >
-        <ScrollView style={{ maxHeight: 600 }}>
+        <ScrollView style={{ maxHeight: 700 }}>
           <View style={{ padding: 20 }}>
             <Text style={[commonStyles.subtitle, { marginBottom: 20, textAlign: 'center' }]}>
               {editingEvent ? 'Editar Evento' : 'Crear Evento'}
@@ -880,7 +920,7 @@ export default function AdminScreen({ onClose }: AdminScreenProps) {
 
             <TextInput
               style={[commonStyles.input, { marginBottom: 16 }]}
-              placeholder="Título del evento"
+              placeholder="Título del evento *"
               value={eventForm.title}
               onChangeText={(text) => setEventForm(prev => ({ ...prev, title: text }))}
             />
@@ -921,7 +961,7 @@ export default function AdminScreen({ onClose }: AdminScreenProps) {
 
             <TextInput
               style={[commonStyles.input, { marginBottom: 16 }]}
-              placeholder="Fecha (YYYY-MM-DD)"
+              placeholder="Fecha (YYYY-MM-DD) *"
               value={eventForm.date}
               onChangeText={(text) => setEventForm(prev => ({ ...prev, date: text }))}
             />
@@ -929,7 +969,7 @@ export default function AdminScreen({ onClose }: AdminScreenProps) {
             <View style={{ flexDirection: 'row', gap: 12, marginBottom: 16 }}>
               <TextInput
                 style={[commonStyles.input, { flex: 1 }]}
-                placeholder="Hora inicio (HH:MM)"
+                placeholder="Hora inicio (HH:MM) *"
                 value={eventForm.startTime}
                 onChangeText={(text) => setEventForm(prev => ({ ...prev, startTime: text }))}
               />
@@ -946,6 +986,15 @@ export default function AdminScreen({ onClose }: AdminScreenProps) {
               placeholder="Ubicación"
               value={eventForm.location}
               onChangeText={(text) => setEventForm(prev => ({ ...prev, location: text }))}
+            />
+
+            <TextInput
+              style={[commonStyles.input, { marginBottom: 16 }]}
+              placeholder="URL de registro (opcional)"
+              value={eventForm.registrationUrl}
+              onChangeText={(text) => setEventForm(prev => ({ ...prev, registrationUrl: text }))}
+              keyboardType="url"
+              autoCapitalize="none"
             />
 
             <TextInput
@@ -998,7 +1047,7 @@ export default function AdminScreen({ onClose }: AdminScreenProps) {
 
             <TextInput
               style={[commonStyles.input, { marginBottom: 16 }]}
-              placeholder="Nombre del speaker"
+              placeholder="Nombre del speaker *"
               value={speakerForm.name}
               onChangeText={(text) => setSpeakerForm(prev => ({ ...prev, name: text }))}
             />
@@ -1009,6 +1058,7 @@ export default function AdminScreen({ onClose }: AdminScreenProps) {
               value={speakerForm.email}
               onChangeText={(text) => setSpeakerForm(prev => ({ ...prev, email: text }))}
               keyboardType="email-address"
+              autoCapitalize="none"
             />
 
             <TextInput
@@ -1023,6 +1073,8 @@ export default function AdminScreen({ onClose }: AdminScreenProps) {
               placeholder="URL del avatar"
               value={speakerForm.avatar_url}
               onChangeText={(text) => setSpeakerForm(prev => ({ ...prev, avatar_url: text }))}
+              keyboardType="url"
+              autoCapitalize="none"
             />
 
             <TextInput

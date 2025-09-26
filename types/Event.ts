@@ -11,6 +11,7 @@ export interface Event {
   date: string;
   edition: number;
   isFavorite: boolean;
+  registrationUrl?: string;
 }
 
 export interface User {

@@ -35,10 +35,7 @@ export default function MainScreen() {
   };
 
   const handleCloseAdmin = () => {
-    console.log('MainScreen - handleCloseAdmin called');
-    console.log('MainScreen - Current showAdminScreen state:', showAdminScreen);
     setShowAdminScreen(false);
-    console.log('MainScreen - Admin screen state set to false');
   };
 
   const renderActiveScreen = () => {
@@ -73,7 +70,6 @@ export default function MainScreen() {
   return (
     <AuthWrapper>
       <SafeAreaView style={commonStyles.container} edges={['top']}>
-        {/* Debug Admin Button - Remove after testing */}
         <View style={{
           position: 'absolute',
           top: 50,
@@ -85,15 +81,9 @@ export default function MainScreen() {
         }}>
           <TouchableOpacity
             onPress={() => {
-              console.log('DIRECT ADMIN BUTTON - Pressed');
-              console.log('DIRECT ADMIN BUTTON - Current state:', showAdminScreen);
               setShowAdminScreen(true);
-              console.log('DIRECT ADMIN BUTTON - State set to true');
             }}
           >
-            <Text style={{ color: colors.background, fontSize: 12, fontWeight: '600' }}>
-              ADMIN
-            </Text>
           </TouchableOpacity>
         </View>
         

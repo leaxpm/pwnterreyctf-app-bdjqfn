@@ -46,7 +46,9 @@ export default function TalksScreen() {
   };
 
   const handleAdminPress = () => {
-    router.push('/admin');
+    if (onShowAdmin) {
+      onShowAdmin();
+    }
   };
 
   if (loading && talks.length === 0) {

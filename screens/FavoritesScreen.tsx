@@ -53,7 +53,9 @@ export default function FavoritesScreen() {
   };
 
   const handleAdminPress = () => {
-    router.push('/admin');
+    if (onShowAdmin) {
+      onShowAdmin();
+    }
   };
 
   if (loading && favoriteEvents.length === 0) {
