@@ -43,11 +43,11 @@ export default function MainScreen() {
       case 'inicio':
         return <HomeScreen onShowAdmin={handleShowAdmin} />;
       case 'ctfs':
-        return <CTFScreen />;
+        return <CTFScreen onShowAdmin={handleShowAdmin} />;
       case 'talleres':
-        return <WorkshopScreen />;
+        return <WorkshopScreen onShowAdmin={handleShowAdmin} />;
       case 'charlas':
-        return <TalksScreen />;
+        return <TalksScreen onShowAdmin={handleShowAdmin} />;
       case 'favoritos':
         return <FavoritesScreen />;
       case 'perfil':
@@ -69,24 +69,7 @@ export default function MainScreen() {
 
   return (
     <AuthWrapper>
-      <SafeAreaView style={commonStyles.container} edges={['top']}>
-        <View style={{
-          position: 'absolute',
-          top: 50,
-          right: 20,
-          zIndex: 1000,
-          backgroundColor: colors.primary,
-          borderRadius: 8,
-          padding: 8,
-        }}>
-          <TouchableOpacity
-            onPress={() => {
-              setShowAdminScreen(true);
-            }}
-          >
-          </TouchableOpacity>
-        </View>
-        
+      <SafeAreaView style={commonStyles.container} edges={['top', 'left', 'right']}>
         <View style={{ flex: 1 }}>
           {renderActiveScreen()}
         </View>

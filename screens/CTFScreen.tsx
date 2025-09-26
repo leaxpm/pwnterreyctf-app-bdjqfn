@@ -1,15 +1,17 @@
 
 import React, { useState } from 'react';
 import { View, Text, ScrollView } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { colors, commonStyles } from '../styles/commonStyles';
 import { useEvents } from '../hooks/useEvents';
 import EventCard from '../components/EventCard';
 import TopBar from '../components/TopBar';
 import Icon from '../components/Icon';
-import { router } from 'expo-router';
 
-const CTFScreen: React.FC = () => {
+interface CTFScreenProps {
+  onShowAdmin?: () => void;
+}
+
+const CTFScreen: React.FC<CTFScreenProps> = ({ onShowAdmin }) => {
   const [selectedEdition, setSelectedEdition] = useState(2025);
   const { getEventsByType, toggleFavorite } = useEvents(selectedEdition);
   const ctfEvents = getEventsByType('CTF');
@@ -26,7 +28,7 @@ const CTFScreen: React.FC = () => {
   };
 
   return (
-    <SafeAreaView style={commonStyles.container}>
+    <View style={commonStyles.container}>
       <TopBar
         title="CTFs"
         selectedEdition={selectedEdition}
@@ -66,7 +68,7 @@ const CTFScreen: React.FC = () => {
           </View>
         )}
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 };
 

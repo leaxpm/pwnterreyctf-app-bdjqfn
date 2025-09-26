@@ -1,7 +1,6 @@
 
 import React, { useState } from 'react';
 import { View, Text, ScrollView, RefreshControl } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { colors, commonStyles } from '../styles/commonStyles';
 import FilterTabs from '../components/FilterTabs';
 import TopBar from '../components/TopBar';
@@ -89,16 +88,23 @@ export default function HomeScreen({ onShowAdmin }: HomeScreenProps) {
 
   if (loading && events.length === 0) {
     return (
-      <SafeAreaView style={commonStyles.container}>
+      <View style={commonStyles.container}>
+        <TopBar
+          title="PwnterreyCTF"
+          selectedEdition={selectedEdition}
+          onEditionChange={setSelectedEdition}
+          showAdminButton={true}
+          onAdminPress={handleAdminPress}
+        />
         <View style={[commonStyles.container, { justifyContent: 'center', alignItems: 'center' }]}>
           <Text style={commonStyles.text}>Cargando eventos...</Text>
         </View>
-      </SafeAreaView>
+      </View>
     );
   }
 
   return (
-    <SafeAreaView style={commonStyles.container}>
+    <View style={commonStyles.container}>
       <TopBar
         title="PwnterreyCTF"
         selectedEdition={selectedEdition}
@@ -165,6 +171,6 @@ export default function HomeScreen({ onShowAdmin }: HomeScreenProps) {
           )}
         </View>
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 }

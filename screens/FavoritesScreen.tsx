@@ -1,87 +1,35 @@
 
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { useEvents } from '../hooks/useEvents';
-import { useAuth } from '../hooks/useAuth';
-import { colors, commonStyles } from '../styles/commonStyles';
-import Icon from '../components/Icon';
-import TopBar from '../components/TopBar';
-import { View, Text, ScrollView, RefreshControl } from 'react-native';
-import EventCard from '../components/EventCard';
 import React, { useState } from 'react';
-import { router } from 'expo-router';
+import { View, Text, ScrollView } from 'react-native';
+import { colors, commonStyles } from '../styles/commonStyles';
+import { useEvents } from '../hooks/useEvents';
+import EventCard from '../components/EventCard';
+import TopBar from '../components/TopBar';
+import Icon from '../components/Icon';
 
-export default function FavoritesScreen() {
+const FavoritesScreen: React.FC = () => {
   const [selectedEdition, setSelectedEdition] = useState(2025);
-  const { getFavoriteEvents, toggleFavorite, loading, refreshEvents } = useEvents(selectedEdition);
-  const { userStats, updateStats } = useAuth();
-  const [refreshing, setRefreshing] = useState(false);
+  const { events, toggleFavorite } = useEvents(selectedEdition);
+  const favoriteEvents = events.filter(event => event.isFavorite);
 
-  const favoriteEvents = getFavoriteEvents();
-
-  const handleRegister = async (eventId: string) => {
-    console.log('Registering for event:', eventId);
-    
-    const event = favoriteEvents.find(e => e.id === eventId);
-    if (!event) return;
-
-    // Update user stats based on event type
-    const newStats = { ...userStats };
-    
-    switch (event.type) {
-      case 'CTF':
-        newStats.ctfsCompleted += 1;
-        newStats.pointsEarned += 50;
-        break;
-      case 'Taller':
-        newStats.workshopsTaken += 1;
-        newStats.pointsEarned += 30;
-        break;
-      case 'Charla':
-        newStats.pointsEarned += 20;
-        break;
-    }
-    
-    newStats.eventsAttended += 1;
-    
-    await updateStats(newStats);
+  const handleRegister = (eventId: string) => {
+    console.log('Registering for favorite event:', eventId);
+    // Here you would implement the registration logic
   };
-
-  const onRefresh = async () => {
-    setRefreshing(true);
-    await refreshEvents();
-    setRefreshing(false);
-  };
-
-  const handleAdminPress = () => {
-    if (onShowAdmin) {
-      onShowAdmin();
-    }
-  };
-
-  if (loading && favoriteEvents.length === 0) {
-    return (
-      <SafeAreaView style={commonStyles.container}>
-        <View style={[commonStyles.container, { justifyContent: 'center', alignItems: 'center' }]}>
-          <Text style={commonStyles.text}>Cargando favoritos...</Text>
-        </View>
-      </SafeAreaView>
-    );
-  }
 
   return (
-    <SafeAreaView style={commonStyles.container}>
+    <View style={commonStyles.container}>
       <TopBar
         title="Favoritos"
         selectedEdition={selectedEdition}
         onEditionChange={setSelectedEdition}
-        showAdminButton={true}
-        onAdminPress={handleAdminPress}
+        showAdminButton={false}
       />
       
       <View style={{ paddingHorizontal: 20, paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: colors.border }}>
         <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
           <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-            <Icon name="heart" size={20} color={colors.primary} />
+            <Icon name="heart" size={20} color={colors.error} />
             <Text style={[commonStyles.subtitle, { marginLeft: 8 }]}>Eventos Favoritos</Text>
           </View>
           <Text style={commonStyles.textSecondary}>
@@ -90,44 +38,30 @@ export default function FavoritesScreen() {
         </View>
       </View>
 
-      <ScrollView 
-        style={commonStyles.container}
-        showsVerticalScrollIndicator={false}
-        refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={onRefresh}
-            tintColor={colors.primary}
+      <ScrollView style={commonStyles.content} showsVerticalScrollIndicator={false}>
+        {favoriteEvents.map((event) => (
+          <EventCard
+            key={event.id}
+            event={event}
+            onToggleFavorite={toggleFavorite}
+            onRegister={handleRegister}
           />
-        }
-      >
-        <View style={{ padding: 20 }}>
-          {favoriteEvents.map((event) => (
-            <EventCard
-              key={event.id}
-              event={event}
-              onToggleFavorite={toggleFavorite}
-              onRegister={handleRegister}
-            />
-          ))}
-          
-          {favoriteEvents.length === 0 && (
-            <View style={{
-              alignItems: 'center',
-              justifyContent: 'center',
-              paddingVertical: 60,
-            }}>
-              <Icon name="heart" size={48} color={colors.textSecondary} />
-              <Text style={[commonStyles.textSecondary, { marginTop: 16, textAlign: 'center' }]}>
-                No tienes eventos favoritos
-              </Text>
-              <Text style={[commonStyles.textSecondary, { marginTop: 8, textAlign: 'center' }]}>
-                Marca eventos como favoritos para verlos aquí
-              </Text>
-            </View>
-          )}
-        </View>
+        ))}
+        
+        {favoriteEvents.length === 0 && (
+          <View style={{ alignItems: 'center', marginTop: 40 }}>
+            <Icon name="heart-outline" size={48} color={colors.textSecondary} />
+            <Text style={[commonStyles.textSecondary, { marginTop: 16, textAlign: 'center' }]}>
+              No tienes eventos favoritos
+            </Text>
+            <Text style={[commonStyles.textSecondary, { marginTop: 8, textAlign: 'center' }]}>
+              Marca eventos como favoritos para verlos aquí
+            </Text>
+          </View>
+        )}
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
-}
+};
+
+export default FavoritesScreen;

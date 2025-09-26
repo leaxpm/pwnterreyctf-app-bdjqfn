@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Alert } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Alert, Platform } from 'react-native';
 import { colors, commonStyles } from '../styles/commonStyles';
 import Icon from './Icon';
 import SimpleBottomSheet from './BottomSheet';
@@ -128,10 +128,12 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: 20,
-    paddingVertical: 16,
+    paddingVertical: Platform.OS === 'ios' ? 12 : 16,
     backgroundColor: colors.background,
     borderBottomWidth: 1,
     borderBottomColor: colors.border,
+    // Remove any additional top padding on iOS since we're already in SafeAreaView
+    paddingTop: Platform.OS === 'ios' ? 8 : 16,
   },
   title: {
     ...commonStyles.title,
